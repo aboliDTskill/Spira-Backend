@@ -43,19 +43,19 @@ def login(request):
             auth.login(request, user_k)
             refresh = RefreshToken.for_user(user_k)
             access_token = str(refresh.access_token)
-            if request.user.control == 'All':
-                print(request.user.control)
-                users = User_record.objects.all().values()
-            elif request.user.role_name == 'TeamleadA':
-                users = User_record.objects.filter(control='TeamLeadA').values()
-            elif request.user.role_name == 'TeamleadB':
-                users = User_record.objects.filter(control='TeamLeadB').values()
-            elif request.user.role_name == 'employee':
-                users = User_record.objects.filter(control = 'employee').values()
+            # if request.user.control == 'All':
+            #     print(request.user.control)
+            #     users = User_record.objects.all().values()
+            # elif request.user.role_name == 'TeamleadA':
+            #     users = User_record.objects.filter(control='TeamLeadA').values()
+            # elif request.user.role_name == 'TeamleadB':
+            #     users = User_record.objects.filter(control='TeamLeadB').values()
+            # elif request.user.role_name == 'employee':
+            #     users = User_record.objects.filter(control = 'employee').values()
 
-            context = {'users': users}
+            # context = {'users': users}
         
-            return Response({'output': {'username': username, 'users':context,'access_token': access_token}}, status=status.HTTP_200_OK)
+            return Response({'output': {'username': username,'access_token': access_token}}, status=status.HTTP_200_OK)
            
         else:
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)

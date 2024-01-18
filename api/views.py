@@ -80,4 +80,20 @@ def update_ackmail(request, pk):
     except Exception as e:
         return Response(str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
+@api_view(['GET'])
+def get_users(request):
+    print(request.user)
+    if request.user.control == 'All':
+        print(request.user.control)
+        users = User_record.objects.all().values()
+    elif request.user.role_name == 'TeamleadA':
+        users = User_record.objects.filter(control='TeamLeadA').values()
+    elif request.user.role_name == 'TeamleadB':
+        users = User_record.objects.filter(control='TeamLeadB').values()
+    elif request.user.role_name == 'employee':
+        users = User_record.objects.filter(control = 'employee').values()
+
+    context = {'users': users}
+    return Response({'Output':{'users':context}})
+    
   
