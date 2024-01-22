@@ -95,5 +95,23 @@ def get_users(request):
 
     context = {'users': users}
     return Response({'Output':{'users':context}})
+
+@api_view(['GET'])
+def get_user_db(request):
+    if request.user.control == 'All' or request.user.role_name == 'Manager':
+        print('enterd')
+        users = User_record.objects.all().values('user')
+        user_names = [AckMail.objects.filter(sales_person_name = user['user']).values() for user in users]
+    elif request.user.role_name == 'TeamleadA':
+        users = User_record.objects.filter(control='TeamLeadA').values('user')
+        user_names = [AckMail.objects.filter(sales_person_name = user['user']).values() for user in users]
+    elif request.user.role_name == 'TeamleadB':
+        users = User_record.objects.filter(control='TeamLeadB').values('user')
+        user_names = [AckMail.objects.filter(sales_person_name = user['user']).values() for user in users]
+    elif request.user.role_name == 'employee':
+        users = User_record.objects.filter(control = 'employee').values('user')
+        user_names = [AckMail.objects.filter(sales_person_name = user['user']).values() for user in users]
+       
+    return Response(user_names)
     
   
