@@ -26,6 +26,7 @@ class User_record(AbstractBaseUser):
     email = models.EmailField(unique=True)
     role_name = models.CharField(max_length=50)
     created_date = models.DateTimeField(default=timezone.now, blank=True, null=True, editable=False)
+    #control --> REporting_to
     control = models.CharField(max_length=50)
 
     objects = CustomUserManager()

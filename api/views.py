@@ -4,6 +4,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 import json
+import numpy as np
+import pandas as pd
 from api.serializers import serialize_ackmails,AckMailSerializer
 # Create your views here.
 @api_view(['POST'])
@@ -115,3 +117,48 @@ def get_user_db(request):
     return Response(user_names)
     
   
+
+@api_view(['POST'])
+def import_csv(request):
+    try:
+        csv_file = request.FILES['csv_file']
+        
+        df = pd.read_csv(csv_file)
+        for index, row in df.iterrows():
+            currency_value = row['currency_value']
+            if pd.notna(currency_value) and np.isnan(currency_value):
+                currency_value = None
+
+            AckMail.objects.create(
+                reference_number=row['reference_number'],
+                sales_mail=row['sales_mail'],
+                sales_email_time=row['sales_email_time'],
+                client_email=row['client_email'],
+                client_email_time=row['client_email_time'],
+                client_cc=row['client_cc'],
+                client_subject=row['client_subject'],
+                #email_body=row['email_body'] if not pd.isnull(row['email_body']) else None,
+                #attachment=row['attachment'] if not pd.isnull(row['attachment']) else None,
+                plain_text=row['plain_text'] if not pd.isnull(row['plain_text']) else None,
+                sales_person_name=row['sales_person_name'] if not pd.isnull(row['sales_person_name']) else None,
+                client_person_name=row['client_person_name'] if not pd.isnull(row['client_person_name']) else None,
+                quotation_time=row['quotation_time'],
+                quotation_to=row['quotation_to'],
+                quotation_from=row['quotation_from'],
+                quotation_subject=row['quotation_subject'],
+                quotation_plain_body=row['quotation_plain_body'],
+                #quotation_html_body=row['quotation_html_body'],
+                #quotation_attachment=row['quotation_attachment'],
+                total_order_value=row['total_order_value'],
+                currency=row['currency'],
+                currency_value=currency_value,
+                reminder_status=row['reminder_status'],
+                ack_time=row['ack_time']
+            )
+        
+        return Response('CSV data imported successfully', status=status.HTTP_200_OK)
+
+    except KeyError as e:
+        return Response(f'Missing required field in CSV: {str(e)}', status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response(str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
