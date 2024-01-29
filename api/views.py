@@ -65,6 +65,8 @@ def read_Ackmail(request):
         return Response(serialized_ackmails, status=status.HTTP_200_OK)
     except Exception as e:
         return Response(str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+ 
     
 @api_view(['PUT'])
 def update_ackmail(request, pk):

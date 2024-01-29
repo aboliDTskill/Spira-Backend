@@ -26,8 +26,14 @@ class User_record(AbstractBaseUser):
     email = models.EmailField(unique=True)
     role_name = models.CharField(max_length=50)
     created_date = models.DateTimeField(default=timezone.now, blank=True, null=True, editable=False)
-    #control --> REporting_to
-    control = models.CharField(max_length=50)
+    reporting_to = models.CharField(max_length=50)
+    #control --> REporting to
+
+    sales_tracker = models.BooleanField(default=False)
+    user_management = models.BooleanField(default=False)
+    quality = models.BooleanField(default=False)
+    procurement = models.BooleanField(default=False)
+    quote_generator = models.BooleanField(default=False)
 
     objects = CustomUserManager()
 
@@ -36,6 +42,15 @@ class User_record(AbstractBaseUser):
 
     def save(self, *args, **kwargs):
         self.password = make_password(self.password)
+
+        # Check if the role_name is "Manager" and set corresponding boolean fields to True
+        if self.role_name == "Manager":
+            self.sales_tracker = True
+            self.user_management = True
+            self.quality = True
+            self.procurement = True
+            self.quote_generator = True
+
         super().save(*args, **kwargs)
 
     def __str__(self):

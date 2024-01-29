@@ -22,7 +22,7 @@ def registration(request):
                 password=regstr['password'],
                 email=regstr['email'],
                 role_name=regstr['role_name'],
-                control = regstr['control']
+                reporting_to=regstr['reporting_to'] 
             )
             return Response('Successfully saved in DB', status=status.HTTP_201_CREATED)
     except json.JSONDecodeError:
@@ -54,8 +54,15 @@ def login(request):
             #     users = User_record.objects.filter(control = 'employee').values()
 
             # context = {'users': users}
+            user_data = {
+                'procurement': user_k.procurement,
+                'quote_generator': user_k.quote_generator,
+                'user_management': user_k.user_management,
+                'quality': user_k.quality,
+                'sales_tracker': user_k.sales_tracker
+            }
         
-            return Response({'output': {'username': username,'access_token': access_token}}, status=status.HTTP_200_OK)
+            return Response({'output': {'username': username,'accessibilitys': user_data,'access_token': access_token}}, status=status.HTTP_200_OK)
            
         else:
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -71,5 +78,29 @@ def delete_users(request):
     User_record.objects.get(user = user_name).delete()
     return Response('Sucessfully deleted')
 
-        
 
+
+
+@api_view(['POST'])        
+def update_user(request):
+    try:
+        username = request.data.get('username')
+        user_to_update = User_record.objects.get(user=username)
+    except User_record.DoesNotExist:
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    try:
+        if request.user.role_name == 'Manager':
+            updated_data = request.data
+            fields_to_update = ['procurement', 'quote_generator', 'user_management', 'quality', 'sales_tracker']# Add more fields as needed
+            for field in fields_to_update:
+                setattr(user_to_update, field, updated_data.get(field, getattr(user_to_update, field)))
+
+            user_to_update.save()
+
+            return Response({'message': f'User {username} information updated successfully'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Permission denied. Only Managers can update user information.'}, status=status.HTTP_403_FORBIDDEN)
+
+    except Exception as e:
+        return Response(str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
