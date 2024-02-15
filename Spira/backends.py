@@ -11,7 +11,7 @@ class CustomUserBackend(ModelBackend):
 
     def authenticate(self, request, username=None, password=None, **kwargs):
         UserModel = get_user_model()
-        print(UserModel)
+        
         try:
             user = UserModel.objects.get(user=username)
             if user.check_password(password) and user:

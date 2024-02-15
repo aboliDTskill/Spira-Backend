@@ -86,9 +86,9 @@ def update_ackmail(request, pk):
     
 @api_view(['GET'])
 def get_users(request):
-    print(request.user)
+    
     if request.user.control == 'All':
-        print(request.user.control)
+        
         users = User_record.objects.all().values()
     elif request.user.role_name == 'TeamleadA':
         users = User_record.objects.filter(control='TeamLeadA').values()
@@ -103,7 +103,7 @@ def get_users(request):
 @api_view(['GET'])
 def get_user_db(request):
     if request.user.control == 'All' or request.user.role_name == 'Manager':
-        print('enterd')
+        
         users = User_record.objects.all().values('user')
         user_names = [AckMail.objects.filter(sales_person_name = user['user']).values() for user in users]
     elif request.user.role_name == 'TeamleadA':
