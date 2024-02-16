@@ -87,33 +87,33 @@ def update_ackmail(request, pk):
 @api_view(['GET'])
 def get_users(request):
     
-    if request.user.control == 'All':
+    if request.user.reporting_to == 'All':
         
         users = User_record.objects.all().values()
     elif request.user.role_name == 'TeamleadA':
-        users = User_record.objects.filter(control='TeamLeadA').values()
+        users = User_record.objects.filter(reporting_to='TeamLeadA').values()
     elif request.user.role_name == 'TeamleadB':
-        users = User_record.objects.filter(control='TeamLeadB').values()
+        users = User_record.objects.filter(reporting_to='TeamLeadB').values()
     elif request.user.role_name == 'employee':
-        users = User_record.objects.filter(control = 'employee').values()
+        users = User_record.objects.filter(reporting_to = 'employee').values()
 
     context = {'users': users}
     return Response({'Output':{'users':context}})
 
 @api_view(['GET'])
 def get_user_db(request):
-    if request.user.control == 'All' or request.user.role_name == 'Manager':
+    if request.user.reporting_to == 'All' or request.user.role_name == 'Manager':
         
         users = User_record.objects.all().values('user')
         user_names = [AckMail.objects.filter(sales_person_name = user['user']).values() for user in users]
     elif request.user.role_name == 'TeamleadA':
-        users = User_record.objects.filter(control='TeamLeadA').values('user')
+        users = User_record.objects.filter(reporting_to='TeamLeadA').values('user')
         user_names = [AckMail.objects.filter(sales_person_name = user['user']).values() for user in users]
     elif request.user.role_name == 'TeamleadB':
-        users = User_record.objects.filter(control='TeamLeadB').values('user')
+        users = User_record.objects.filter(reporting_to='TeamLeadB').values('user')
         user_names = [AckMail.objects.filter(sales_person_name = user['user']).values() for user in users]
     elif request.user.role_name == 'employee':
-        users = User_record.objects.filter(control = 'employee').values('user')
+        users = User_record.objects.filter(reporting_to = 'employee').values('user')
         user_names = [AckMail.objects.filter(sales_person_name = user['user']).values() for user in users]
        
     return Response(user_names)
