@@ -37,8 +37,8 @@ class User_record(AbstractBaseUser):
 
     objects = CustomUserManager()
 
-    USERNAME_FIELD = 'user'
-    REQUIRED_FIELDS = ['email']  # Add any additional required fields for user creation
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['']  # Add any additional required fields for user creation
 
     def save(self, *args, **kwargs):
         self.password = make_password(self.password)
@@ -82,5 +82,11 @@ class AckMail(models.Model):
     currency_value = models.CharField(max_length=255)
     reminder_status = models.CharField(max_length=255)
     ack_time = models.CharField(max_length=255)
+    order_ageing = models.CharField(max_length=255)
+    order_date_time = models.CharField(max_length=255)
+    order_closure_days = models.CharField(max_length=255)
+    order_value = models.CharField(max_length=255)
+    order_email_attachment = models.CharField(max_length=255)
+
 
   

@@ -1,0 +1,12 @@
+[Unit]
+Description=gunicorn daemon
+After=network.target
+
+[Service]
+User=root
+Group=www-data
+WorkingDirectory=/var/www/spira_backend
+ExecStart=/var/www/spira_backend/env/bin/gunicorn --workers 3 --bind 127.0.0.1:8000 Ai.wsgi:application
+
+[Install]
+WantedBy=multi-user.target

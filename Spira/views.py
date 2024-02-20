@@ -35,25 +35,14 @@ def registration(request):
 def login(request):
     try:
         user_profiles = User_record.objects.all()
-        username = request.data.get('username')
+        email = request.data.get('email')
         password = request.data.get('password')
-        user_k = auth.authenticate(username=username, password=password)
-
+        user_k = auth.authenticate(email=email, password=password)
+        print(user_k)
         if user_k is not None:
             auth.login(request, user_k)
             refresh = RefreshToken.for_user(user_k)
             access_token = str(refresh.access_token)
-            # if request.user.control == 'All':
-            #     print(request.user.control)
-            #     users = User_record.objects.all().values()
-            # elif request.user.role_name == 'TeamleadA':
-            #     users = User_record.objects.filter(control='TeamLeadA').values()
-            # elif request.user.role_name == 'TeamleadB':
-            #     users = User_record.objects.filter(control='TeamLeadB').values()
-            # elif request.user.role_name == 'employee':
-            #     users = User_record.objects.filter(control = 'employee').values()
-
-            # context = {'users': users}
             user_data = {
                 'procurement': user_k.procurement,
                 'quote_generator': user_k.quote_generator,
@@ -62,7 +51,7 @@ def login(request):
                 'sales_tracker': user_k.sales_tracker
             }
         
-            return Response({'output': {'username': username,'accessibilitys': user_data,'access_token': access_token}}, status=status.HTTP_200_OK)
+            return Response({'output': {'username': email,'accessibilitys': user_data,'access_token': access_token}}, status=status.HTTP_200_OK)
            
         else:
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)

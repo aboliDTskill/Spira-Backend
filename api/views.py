@@ -52,7 +52,7 @@ def Create_AckMail(request):
 def delete_Ackmail(request):
     try:
         rfrnc_num = request.data.get('refrence_num')
-        AckMail.objects.get(reference_number=rfrnc_num).delete()
+        AckMail.objects.all().delete()
         return Response('Successfully deleted',status=status.HTTP_200_OK)
     except AckMail.DoesNotExist:
         return Response('No Record Found To Delete', status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -84,37 +84,19 @@ def update_ackmail(request, pk):
     except Exception as e:
         return Response(str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
-@api_view(['GET'])
-def get_users(request):
-    
-    if request.user.reporting_to == 'All':
-        
-        users = User_record.objects.all().values()
-    elif request.user.role_name == 'TeamleadA':
-        users = User_record.objects.filter(reporting_to='TeamLeadA').values()
-    elif request.user.role_name == 'TeamleadB':
-        users = User_record.objects.filter(reporting_to='TeamLeadB').values()
-    elif request.user.role_name == 'employee':
-        users = User_record.objects.filter(reporting_to = 'employee').values()
 
-    context = {'users': users}
-    return Response({'Output':{'users':context}})
 
 @api_view(['GET'])
 def get_user_db(request):
-    if request.user.reporting_to == 'All' or request.user.role_name == 'Manager':
-        
-        users = User_record.objects.all().values('user')
+    
+    if request.user.role_name == 'Manager':
+        users = User_record.objects.filter(reporting_to=request.user).values('user')
         user_names = [AckMail.objects.filter(sales_person_name = user['user']).values() for user in users]
-    elif request.user.role_name == 'TeamleadA':
-        users = User_record.objects.filter(reporting_to='TeamLeadA').values('user')
-        user_names = [AckMail.objects.filter(sales_person_name = user['user']).values() for user in users]
-    elif request.user.role_name == 'TeamleadB':
-        users = User_record.objects.filter(reporting_to='TeamLeadB').values('user')
+    elif request.user.role_name == 'Teamlead':
+        users = User_record.objects.filter(reporting_to=request.user).values('user')
         user_names = [AckMail.objects.filter(sales_person_name = user['user']).values() for user in users]
     elif request.user.role_name == 'employee':
-        users = User_record.objects.filter(reporting_to = 'employee').values('user')
-        user_names = [AckMail.objects.filter(sales_person_name = user['user']).values() for user in users]
+        user_names = [AckMail.objects.filter(sales_mail = request.user.email).values()]
        
     return Response(user_names)
     
