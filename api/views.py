@@ -84,14 +84,33 @@ def update_ackmail(request, pk):
     except Exception as e:
         return Response(str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
+@api_view(['GET'])
+def get_users(request):
+    
+    if request.user.reporting_to == 'All':
+        
+        users = User_record.objects.all().values()
+    elif request.user.role_name == 'Teamlead':
+        users = User_record.objects.filter(reporting_to='TeamLeadA').values()
+    elif request.user.role_name == 'TeamleadB':
+        users = User_record.objects.filter(reporting_to='TeamLeadB').values()
+    elif request.user.role_name == 'employee':
+        users = User_record.objects.filter(reporting_to = 'employee').values()
 
+    context = {'users': users}
+    return Response({'Output':{'users':context}})
 
 @api_view(['GET'])
 def get_user_db(request):
-    
-    if request.user.role_name == 'Manager':
-        users = User_record.objects.filter(reporting_to=request.user).values('user')
+    # print(request.user.em)
+    if request.user.role_name == 'admin':
+        users = User_record.objects.all().values('user')
         user_names = [AckMail.objects.filter(sales_person_name = user['user']).values() for user in users]
+    elif request.user.role_name == 'Manager':
+        team_leads = User_record.objects.filter(reporting_to=request.user).values('user')
+        employee = [User_record.objects.filter(reporting_to=team_members['user']).values('user') for team_members in team_leads]
+        for each in employee:
+            user_names = [AckMail.objects.filter(sales_person_name = user['user']).values() for user in each]
     elif request.user.role_name == 'Teamlead':
         users = User_record.objects.filter(reporting_to=request.user).values('user')
         user_names = [AckMail.objects.filter(sales_person_name = user['user']).values() for user in users]
