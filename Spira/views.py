@@ -38,7 +38,6 @@ def login(request):
         email = request.data.get('email')
         password = request.data.get('password')
         user_k = auth.authenticate(email=email, password=password)
-        print(user_k)
         if user_k is not None:
             auth.login(request, user_k)
             refresh = RefreshToken.for_user(user_k)

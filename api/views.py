@@ -107,10 +107,12 @@ def get_user_db(request):
         users = User_record.objects.all().values('user')
         user_names = [AckMail.objects.filter(sales_person_name = user['user']).values() for user in users]
     elif request.user.role_name == 'Manager':
+        user_names=[]
         team_leads = User_record.objects.filter(reporting_to=request.user).values('user')
         employee = [User_record.objects.filter(reporting_to=team_members['user']).values('user') for team_members in team_leads]
         for each in employee:
-            user_names = [AckMail.objects.filter(sales_person_name = user['user']).values() for user in each]
+            record = [AckMail.objects.filter(sales_person_name = user['user']).values() for user in each]
+            user_names.append(record)
     elif request.user.role_name == 'Teamlead':
         users = User_record.objects.filter(reporting_to=request.user).values('user')
         user_names = [AckMail.objects.filter(sales_person_name = user['user']).values() for user in users]
