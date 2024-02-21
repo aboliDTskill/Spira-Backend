@@ -1,9 +1,8 @@
 pipeline{
     agent any
     environment {
-        SSH_KEY               = credentials('spira') // Referencing the SSH key credential
-        REMOTE_USER           = 'ubuntu'
-        REMOTE_HOST           = '13.200.63.189'
+        SSH_KEY               = credentials('spira_backend') // Referencing the SSH key credential
+        
     }
     stages {
     
