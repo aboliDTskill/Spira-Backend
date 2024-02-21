@@ -1,10 +1,7 @@
 pipeline{
     agent any
     environment {
-        AWS_ACCESS_KEY_ID     = credentials('')
-        AWS_SECRET_ACCESS_KEY = credentials('')
-        AWS_REGION            = 'us-east-1'
-        SSH_KEY               = credentials('') // Referencing the SSH key credential
+        SSH_KEY               = credentials('spira') // Referencing the SSH key credential
         REMOTE_USER           = 'ubuntu'
         REMOTE_HOST           = '13.200.63.189'
     }

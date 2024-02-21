@@ -40,7 +40,13 @@ def Create_AckMail(request):
             currency=json_data['currency'],
             currency_value=json_data['currency_value'],
             reminder_status=json_data['reminder_status'],
-            ack_time=json_data['ack_time'])
+            ack_time=json_data['ack_time'],
+            order_ageing=json_data['order_ageing'],
+            order_date_time=json_data['order_date_time'],
+            order_closure_days =json_data['order_closure_days'],
+            order_value=json_data['order_value'],
+            order_email_attachment=json_data['order_email_attachment'])
+        
         return Response('Successfully saved in db',status=status.HTTP_200_OK)
     except json.JSONDecodeError:
         return Response('Invalid JSON format', status=status.HTTP_400_BAD_REQUEST)
@@ -51,8 +57,8 @@ def Create_AckMail(request):
 @api_view(['POST'])
 def delete_Ackmail(request):
     try:
-        rfrnc_num = request.data.get('refrence_num')
-        AckMail.objects.all().delete()
+        rfrnc_email = request.data.get('email')
+        AckMail.objects.get(email=rfrnc_email).delete()
         return Response('Successfully deleted',status=status.HTTP_200_OK)
     except AckMail.DoesNotExist:
         return Response('No Record Found To Delete', status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -87,22 +93,20 @@ def update_ackmail(request, pk):
 @api_view(['GET'])
 def get_users(request):
     
-    if request.user.reporting_to == 'All':
-        
-        users = User_record.objects.all().values()
+    if request.user.role_name == 'admin':
+        users = User_record.objects.all().values('last_login','user','email','role_name','reporting_to','sales_tracker','user_management','quality','procurement','quote_generator')
+    elif request.user.role_name == 'Manager':
+        users = []
+        teamleads = User_record.objects.filter(reporting_to=request.user).values('last_login','user','email','role_name','reporting_to','sales_tracker','user_management','quality','procurement','quote_generator')
+        users.append(teamleads)
+        employee = [User_record.objects.filter(reporting_to=team_members['user']).values('last_login','user','email','role_name','reporting_to','sales_tracker','user_management','quality','procurement','quote_generator') for team_members in User_record.objects.filter(reporting_to=request.user).values('user')]
+        users.append(employee)
     elif request.user.role_name == 'Teamlead':
-        users = User_record.objects.filter(reporting_to='TeamLeadA').values()
-    elif request.user.role_name == 'TeamleadB':
-        users = User_record.objects.filter(reporting_to='TeamLeadB').values()
-    elif request.user.role_name == 'employee':
-        users = User_record.objects.filter(reporting_to = 'employee').values()
-
-    context = {'users': users}
-    return Response({'Output':{'users':context}})
+        users = User_record.objects.filter(reporting_to=request.user).values()
+    return Response({'Output':{'record':users}})
 
 @api_view(['GET'])
 def get_user_db(request):
-    # print(request.user.em)
     if request.user.role_name == 'admin':
         users = User_record.objects.all().values('user')
         user_names = [AckMail.objects.filter(sales_person_name = user['user']).values() for user in users]
