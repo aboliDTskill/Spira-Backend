@@ -44,7 +44,7 @@ class User_record(AbstractBaseUser):
         self.password = make_password(self.password)
 
         # Check if the role_name is "Manager" and set corresponding boolean fields to True
-        if self.role_name == "Manager":
+        if self.role_name == "Manager" or self.role_name == "Teamlead" or self.role_name == "admin":
             self.sales_tracker = True
             self.user_management = True
             self.quality = True

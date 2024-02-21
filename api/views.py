@@ -58,6 +58,7 @@ def Create_AckMail(request):
 def delete_Ackmail(request):
     try:
         rfrnc_email = request.data.get('email')
+        rfrnc_num = request.data.get('rfrnc_num')
         AckMail.objects.get(email=rfrnc_email).delete()
         return Response('Successfully deleted',status=status.HTTP_200_OK)
     except AckMail.DoesNotExist:
