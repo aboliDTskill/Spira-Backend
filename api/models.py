@@ -50,6 +50,12 @@ class User_record(AbstractBaseUser):
             self.quality = True
             self.procurement = True
             self.quote_generator = True
+        else:
+            self.sales_tracker = True
+            self.user_management = False
+            self.quality = False
+            self.procurement = False
+            self.quote_generator = False
 
         super().save(*args, **kwargs)
 
