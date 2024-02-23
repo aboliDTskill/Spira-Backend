@@ -2,7 +2,7 @@
 
 source env/bin/activate
 echo $PWD
-cd /var/www/spira_backend  #this is not reflecting in build
+cd /home/ubuntu/workspace/spira_backend  #this is not reflecting in build
 
 # python3 manage.py makemigrations
 # python3 manage.py migrate
@@ -10,7 +10,7 @@ cd /var/www/spira_backend  #this is not reflecting in build
 
 # echo "Migrations done"
 
-cd /var/www/spira_backend
+cd /home/ubuntu/workspace/spira_backend
 
 
 sudo cp -rf gunicorn.service /etc/systemd/system/gunicorn.service
