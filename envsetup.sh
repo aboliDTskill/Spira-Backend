@@ -8,7 +8,7 @@ else
 fi
 
 echo $PWD
-source /home/ubuntu/workspace/env/bin/activate  #this is not building here /var/lib/jenkins/workspace/Backend
+source /home/ubuntu/workspace/spira_backend/env/bin/activate  #this is not building here /var/lib/jenkins/workspace/Backend
 
 
 pip3 install -r requirements.txt
