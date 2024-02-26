@@ -34,6 +34,12 @@ def serialize_ackmails(ackmails):
             "email_body":getattr(ackmail,'email_body' ) ,
             "attachment":getattr(ackmail,'attachment' ) ,
             "quotation_html_body":getattr(ackmail,'quotation_html_body' ) ,
-            "quotation_attachment":getattr(ackmail,'quotation_attachment' ) 
+            "quotation_attachment":getattr(ackmail,'quotation_attachment' ) ,
+            "quotation_attachment":getattr(ackmail,'quotation_attachment' ) ,
+            "order_ageing":ackmail.order_ageing,
+            "order_date_time":ackmail.order_date_time,
+            "order_closure_days":ackmail.order_closure_days,
+            "order_value":ackmail.order_value,
+            "order_email_attachment":ackmail.order_email_attachment,
         })
     return serialized_data

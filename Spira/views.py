@@ -63,7 +63,9 @@ def login(request):
 @permission_classes([permissions.AllowAny])
 def delete_users(request):
     user_name = request.data.get('username')
-    User_record.objects.get(user = user_name).delete()
+    email = request.data.get('email')
+    user_record_obj = User_record.objects.get(user=user_name, email=email)
+    user_record_obj.delete()
     return Response('Sucessfully deleted')
 
 
@@ -71,24 +73,33 @@ def delete_users(request):
 
 @api_view(['POST'])        
 def update_user(request):
-    try:
+    
         username = request.data.get('username')
-        user_to_update = User_record.objects.get(user=username)
-    except User_record.DoesNotExist:
-        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-
-    try:
-        if request.user.role_name == 'Manager':
-            updated_data = request.data
-            fields_to_update = ['procurement', 'quote_generator', 'user_management', 'quality', 'sales_tracker']# Add more fields as needed
-            for field in fields_to_update:
-                setattr(user_to_update, field, updated_data.get(field, getattr(user_to_update, field)))
-
-            user_to_update.save()
-
-            return Response({'message': f'User {username} information updated successfully'}, status=status.HTTP_200_OK)
+        email = request.data.get('email')
+        user_to_update = User_record.objects.get(user=username, email=email)
+        print(user_to_update)
+        # Check if user_to_update exists
+        if user_to_update is not None:
+            # Check permissions
+            if request.user.role_name == 'Manager':
+                updated_data = request.data
+                fields_to_update = ['procurement', 'quote_generator', 'user_management', 'quality', 'sales_tracker']
+                
+                for field in fields_to_update:
+                    # Update each field if provided in the request data
+                   
+                    if field in updated_data:
+                     
+                        # setattr(user_to_update, field, updated_data[field])
+                        user_to_update.__dict__[field] = updated_data[field]
+                     
+                        # print(user_to_update.__dict__[])
+                        # print(updated_data[field])
+                
+                        user_to_update.save()
+               
+                return Response({'message': f'User {username} information updated successfully'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'Permission denied. Only Managers can update user information.'}, status=status.HTTP_403_FORBIDDEN)
         else:
-            return Response({'error': 'Permission denied. Only Managers can update user information.'}, status=status.HTTP_403_FORBIDDEN)
-
-    except Exception as e:
-        return Response(str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)

@@ -53,13 +53,13 @@ def Create_AckMail(request):
     except KeyError as e:
         return Response(f'Missing required field: {str(e)}', status=status.HTTP_400_BAD_REQUEST)
 
-
 @api_view(['POST'])
 def delete_Ackmail(request):
     try:
-        rfrnc_email = request.data.get('email')
+        sales_mail = request.data.get('sales_mail')
         rfrnc_num = request.data.get('rfrnc_num')
-        AckMail.objects.get(email=rfrnc_email).delete()
+        ack_mail_obj = AckMail.objects.get(sales_mail=sales_mail, reference_number=rfrnc_num)
+        ack_mail_obj.delete()
         return Response('Successfully deleted',status=status.HTTP_200_OK)
     except AckMail.DoesNotExist:
         return Response('No Record Found To Delete', status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -78,16 +78,34 @@ def read_Ackmail(request):
 @api_view(['PUT'])
 def update_ackmail(request, pk):
     try:
-        ackmail = AckMail.objects.get(reference_number=pk)
-        serializer = AckMailSerializer(ackmail, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response('Updated Sucessfully', status=status.HTTP_200_OK)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        email = request.data.get("email")
+        jsondata_str = request.data.get("jsondata")
 
-    except AckMail.DoesNotExist:
-        return Response('No Record Found To Update', status=status.HTTP_404_NOT_FOUND)
+        # Convert jsondata_str to dictionary
+        import json
+        data_dict = json.loads(jsondata_str) if jsondata_str else {}
+
+        if not data_dict:
+            return Response("No data provided for update", status=status.HTTP_400_BAD_REQUEST)
+
+        ackmail_query = AckMail.objects.filter(reference_number=pk, sales_mail=email)
+
+        if ackmail_query.exists():
+            ackmail = ackmail_query.first()
+            serializer = AckMailSerializer(ackmail, data=data_dict, partial=True)
+
+            allowed_roles = ['admin', 'Manager', 'Teamlead']
+            if request.user.role_name in allowed_roles:
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response('Updated Successfully', status=status.HTTP_200_OK)
+                else:
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response('Permission denied. Only Managers, Team Leads, and Admins can update AckMail.', status=status.HTTP_403_FORBIDDEN)
+
+        else:
+            return Response('No Record Found To Update', status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response(str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
@@ -163,7 +181,12 @@ def import_csv(request):
                 currency=row['currency'],
                 currency_value=currency_value,
                 reminder_status=row['reminder_status'],
-                ack_time=row['ack_time']
+                ack_time=row['ack_time'],
+                order_ageing =row['order_ageing'],
+                order_date_time=row['order_date_time'],
+                order_closure_days=row['order_closure_days'],
+                order_value=row['order_value'],
+                order_email_attachment=row['order_email_attachment'],
             )
         
         return Response('CSV data imported successfully', status=status.HTTP_200_OK)
