@@ -50,7 +50,7 @@ def login(request):
                 'sales_tracker': user_k.sales_tracker
             }
         
-            return Response({'output': {'username': email,'Role':request.user.role_name,'accessibilitys': user_data,'access_token': access_token}}, status=status.HTTP_200_OK)
+            return Response({'output': {'username': email,'accessibilitys': user_data,'access_token': access_token}}, status=status.HTTP_200_OK)
            
         else:
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
