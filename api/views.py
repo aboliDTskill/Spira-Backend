@@ -122,7 +122,7 @@ def get_users(request):
         users.append(employee)
     elif request.user.role_name == 'Teamlead':
         users = User_record.objects.filter(reporting_to=request.user).values()
-    return Response({'Output':{'record':users,'Role':request.user.role_name}})
+    return Response({'Output':{'record':users,'Role':request.user.role_name,"Name":request.user.user}})
 
 @api_view(['GET'])
 def get_user_db(request):
