@@ -112,12 +112,12 @@ def update_ackmail(request, pk):
 def get_users(request):
     
     if request.user.role_name == 'admin':
-        users = User_record.objects.all().values('last_login','user','email','role_name','reporting_to','sales_tracker','user_management','quality','procurement','quote_generator')
+        users = User_record.objects.all().values('created_date','last_login','user','email','role_name','reporting_to','sales_tracker','user_management','quality','procurement','quote_generator')
     elif request.user.role_name == 'Manager':
         users = []
-        teamleads = User_record.objects.filter(reporting_to=request.user).values('last_login','user','email','role_name','reporting_to','sales_tracker','user_management','quality','procurement','quote_generator')
+        teamleads = User_record.objects.filter(reporting_to=request.user).values('created_date','last_login','user','email','role_name','reporting_to','sales_tracker','user_management','quality','procurement','quote_generator')
         users.append(teamleads)
-        employee = [User_record.objects.filter(reporting_to=team_members['user']).values('last_login','user','email','role_name','reporting_to','sales_tracker','user_management','quality','procurement','quote_generator') for team_members in User_record.objects.filter(reporting_to=request.user).values('user')]
+        employee = [User_record.objects.filter(reporting_to=team_members['user']).values('created_date','last_login','user','email','role_name','reporting_to','sales_tracker','user_management','quality','procurement','quote_generator') for team_members in User_record.objects.filter(reporting_to=request.user).values('user')]
         users.append(employee)
     elif request.user.role_name == 'Teamlead':
         users = User_record.objects.filter(reporting_to=request.user).values()
