@@ -24,6 +24,6 @@ urlpatterns = [
     path('Login',views.login),
     path('delete',views.delete_users),
     path('api/',include('api.urls')),
-    path('update-user', views.update_user, name='update_user'),
+    path('update-user', views.update_user_fields, name='update_user'),
 
 ]

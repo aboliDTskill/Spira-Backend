@@ -34,10 +34,10 @@ def registration(request):
 @permission_classes([permissions.AllowAny])
 def login(request):
     try:
-        user_profiles = User_record.objects.all()
+       
         email = request.data.get('email')
         password = request.data.get('password')
-        user_k = auth.authenticate(email=email, password=password)
+        user_k = authenticate(email=email, password=password)
         if user_k is not None:
             auth.login(request, user_k)
             refresh = RefreshToken.for_user(user_k)
@@ -49,12 +49,9 @@ def login(request):
                 'quality': user_k.quality,
                 'sales_tracker': user_k.sales_tracker
             }
-        
-            return Response({'output': {'username': email,'accessibilitys': user_data,'access_token': access_token}}, status=status.HTTP_200_OK)
-           
+            return Response({'output': {'username': email,'Name': request.user.user,'Role': request.user.role_name,'accessibilitys': user_data,'access_token': access_token}}, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-        
     except Exception as e:
         return Response(str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
@@ -68,38 +65,16 @@ def delete_users(request):
     user_record_obj.delete()
     return Response('Sucessfully deleted')
 
-
-
-
 @api_view(['POST'])        
-def update_user(request):
-    
-        username = request.data.get('username')
+def update_user_fields(request):
+    try:
         email = request.data.get('email')
-        user_to_update = User_record.objects.get(user=username, email=email)
-        print(user_to_update)
-        # Check if user_to_update exists
-        if user_to_update is not None:
-            # Check permissions
-            if request.user.role_name == 'Manager':
-                updated_data = request.data
-                fields_to_update = ['procurement', 'quote_generator', 'user_management', 'quality', 'sales_tracker']
-                
-                for field in fields_to_update:
-                    # Update each field if provided in the request data
-                   
-                    if field in updated_data:
-                     
-                        # setattr(user_to_update, field, updated_data[field])
-                        user_to_update.__dict__[field] = updated_data[field]
-                     
-                        # print(user_to_update.__dict__[])
-                        # print(updated_data[field])
-                
-                        user_to_update.save()
-               
-                return Response({'message': f'User {username} information updated successfully'}, status=status.HTTP_200_OK)
-            else:
-                return Response({'error': 'Permission denied. Only Managers can update user information.'}, status=status.HTTP_403_FORBIDDEN)
+        updated_data = request.data.get('data')
+        if request.user.role_name == 'Manager':
+            columns = {key: value for key, value in updated_data.items()}
+            User_record.objects.filter(email=email).update(**columns)   
+            return Response({'message': f'User {email} information updated successfully'}, status=status.HTTP_200_OK)
         else:
-            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Permission denied. Only Managers can update user information.'}, status=status.HTTP_403_FORBIDDEN)
+    except Exception as e:
+        return Response(str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)

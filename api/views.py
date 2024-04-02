@@ -82,7 +82,6 @@ def update_ackmail(request, pk):
         jsondata_str = request.data.get("jsondata")
 
         # Convert jsondata_str to dictionary
-        import json
         data_dict = json.loads(jsondata_str) if jsondata_str else {}
 
         if not data_dict:

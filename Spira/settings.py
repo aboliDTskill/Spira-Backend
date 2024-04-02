@@ -28,9 +28,9 @@ SECRET_KEY = 'django-insecure-c79l%9v&k_zo)nsi(j+-)&i*qg_gxw+5iqor(ju$a!(vafb(oi
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-CSRF_TRUSTED_ORIGINS = ['http://*.localhost:3000','http://13.200.63.189:3000']
-CORS_ALLOWED_ORIGINS = ['http://localhost:3000','http://13.200.63.189:3000']
-CORS_ORIGIN_WHITELIST  = ["http://localhost:3000",'http://13.200.63.189:3000']
+CSRF_TRUSTED_ORIGINS = ['http://*.localhost:3000','http://13.200.63.189:3000','https://spira.dtskill.com']
+CORS_ALLOWED_ORIGINS = ['http://localhost:3000','http://13.200.63.189:3000','https://spira.dtskill.com']
+CORS_ORIGIN_WHITELIST  = ["http://localhost:3000",'http://13.200.63.189:3000','https://spira.dtskill.com']
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -83,6 +83,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'Spira.wsgi.application'
 AUTH_USER_MODEL = 'api.user_record'
+
 
 AUTHENTICATION_BACKENDS = [
     'Spira.backends.CustomUserBackend',  # Add your custom backend
