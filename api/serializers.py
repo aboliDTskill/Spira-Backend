@@ -1,10 +1,13 @@
 from rest_framework import serializers
-from .models import AckMail
+from .models import ack_mail  
+
+
 
 class AckMailSerializer(serializers.ModelSerializer):
     class Meta:
-        model = AckMail
+        model = ack_mail
         fields = '__all__'
+
 
 
 def serialize_ackmails(ackmails):
@@ -14,12 +17,12 @@ def serialize_ackmails(ackmails):
             'reference_number': ackmail.reference_number,
             'sales_mail': ackmail.sales_mail,
             'sales_email_time': ackmail.sales_email_time,
-            "client_email" :ackmail.client_email,
-            "client_email_time" :ackmail.client_email_time,
+            "client_email" : ackmail.client_email,
+            "client_email_time" : ackmail.client_email_time,
             "client_cc" : ackmail.client_cc,
-            "client_subject" :ackmail.client_subject,
+            "client_subject" : ackmail.client_subject,
             "plain_text" : ackmail.plain_text,
-            "sales_person_name" :ackmail.sales_person_name,
+            "sales_person_name" : ackmail.sales_person_name,
             "client_person_name" : ackmail.client_person_name,
             "quotation_time" : ackmail.quotation_time,
             "quotation_to" : ackmail.quotation_to,
@@ -31,15 +34,9 @@ def serialize_ackmails(ackmails):
             "currency_value" : ackmail.currency_value,
             "reminder_status" : ackmail.reminder_status,
             "ack_time" : ackmail.ack_time,
-            "email_body":getattr(ackmail,'email_body' ) ,
-            "attachment":getattr(ackmail,'attachment' ) ,
-            "quotation_html_body":getattr(ackmail,'quotation_html_body' ) ,
-            "quotation_attachment":getattr(ackmail,'quotation_attachment' ) ,
-            "quotation_attachment":getattr(ackmail,'quotation_attachment' ) ,
-            "order_ageing":ackmail.order_ageing,
-            "order_date_time":ackmail.order_date_time,
-            "order_closure_days":ackmail.order_closure_days,
-            "order_value":ackmail.order_value,
-            "order_email_attachment":ackmail.order_email_attachment,
+            "email_body": ackmail.email_body if ackmail.email_body else None,
+            "attachment": ackmail.attachment if ackmail.attachment else None,
+            "quotation_html_body": ackmail.quotation_html_body if ackmail.quotation_html_body else None,
+            "quotation_attachment": ackmail.quotation_attachment if ackmail.quotation_attachment else None,
         })
     return serialized_data

@@ -38,12 +38,10 @@ class User_record(AbstractBaseUser):
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['']  # Add any additional required fields for user creation
+    REQUIRED_FIELDS = ['']  
 
     def save(self, *args, **kwargs):
         self.password = make_password(self.password)
-
-        # Check if the role_name is "Manager" and set corresponding boolean fields to True
         if self.role_name == "Manager" or self.role_name == "Teamlead" or self.role_name == "admin":
             self.sales_tracker = True
             self.user_management = True
@@ -63,7 +61,8 @@ class User_record(AbstractBaseUser):
         return self.user
 
 
-class AckMail(models.Model):
+
+class ack_mail(models.Model):
     reference_number = models.CharField(max_length=255)
     sales_mail = models.CharField(max_length=255)
     sales_email_time = models.CharField(max_length=255)
@@ -71,8 +70,8 @@ class AckMail(models.Model):
     client_email_time = models.CharField(max_length=255)
     client_cc = models.TextField()
     client_subject = models.CharField(max_length=255)
-    email_body =  models.FileField(upload_to='file')
-    attachment =  models.FileField(upload_to='file')
+    email_body = models.BinaryField()
+    attachment = models.BinaryField()
     plain_text = models.TextField()
     sales_person_name = models.TextField()
     client_person_name = models.TextField()
@@ -81,18 +80,14 @@ class AckMail(models.Model):
     quotation_from = models.TextField()
     quotation_subject = models.TextField()
     quotation_plain_body = models.TextField()
-    quotation_html_body =  models.FileField(upload_to='file')
-    quotation_attachment =  models.FileField(upload_to='file')
+    quotation_html_body = models.BinaryField()
+    quotation_attachment = models.BinaryField()
     total_order_value = models.CharField(max_length=255)
     currency = models.CharField(max_length=255)
     currency_value = models.CharField(max_length=255)
     reminder_status = models.CharField(max_length=255)
     ack_time = models.CharField(max_length=255)
-    order_ageing = models.CharField(max_length=255)
-    order_date_time = models.CharField(max_length=255)
-    order_closure_days = models.CharField(max_length=255)
-    order_value = models.CharField(max_length=255)
-    order_email_attachment = models.CharField(max_length=255)
 
-
-  
+    class Meta:
+        managed = False
+        db_table = 'ack_mail'

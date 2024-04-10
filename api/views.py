@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from api.models import AckMail,User_record
+from api.models import User_record, ack_mail
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
@@ -16,7 +16,7 @@ def Create_AckMail(request):
         attchmnt = request.data.get('attachment')
         qtn_html_body = request.data.get('quotation_html_body')
         qtn_attchmnt = request.data.get('quotation_attachment')
-        AckMail.objects.create(
+        ack_mail.objects.create(
             reference_number=json_data['reference_number'],
             sales_mail=json_data['sales_mail'],
             sales_email_time=json_data['sales_email_time'],
@@ -58,16 +58,16 @@ def delete_Ackmail(request):
     try:
         sales_mail = request.data.get('sales_mail')
         rfrnc_num = request.data.get('rfrnc_num')
-        ack_mail_obj = AckMail.objects.get(sales_mail=sales_mail, reference_number=rfrnc_num)
+        ack_mail_obj = ack_mail.objects.get(sales_mail=sales_mail, reference_number=rfrnc_num)
         ack_mail_obj.delete()
         return Response('Successfully deleted',status=status.HTTP_200_OK)
-    except AckMail.DoesNotExist:
+    except ack_mail.DoesNotExist:
         return Response('No Record Found To Delete', status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['GET'])
 def read_Ackmail(request):
     try:
-        ack_mail = AckMail.objects.all()
+        ack_mail = ack_mail.objects.all()
         serialized_ackmails = serialize_ackmails(ack_mail)
         return Response(serialized_ackmails, status=status.HTTP_200_OK)
     except Exception as e:
@@ -87,7 +87,7 @@ def update_ackmail(request, pk):
         if not data_dict:
             return Response("No data provided for update", status=status.HTTP_400_BAD_REQUEST)
 
-        ackmail_query = AckMail.objects.filter(reference_number=pk, sales_mail=email)
+        ackmail_query = ack_mail.objects.filter(reference_number=pk, sales_mail=email)
 
         if ackmail_query.exists():
             ackmail = ackmail_query.first()
@@ -123,23 +123,24 @@ def get_users(request):
         users = User_record.objects.filter(reporting_to=request.user).values()
     return Response({'Output':{'record':users,'Role':request.user.role_name,"Name":request.user.user}})
 
+
 @api_view(['GET'])
 def get_user_db(request):
     if request.user.role_name == 'admin':
         users = User_record.objects.all().values('user')
-        user_names = [AckMail.objects.filter(sales_person_name = user['user']).values() for user in users]
+        user_names = [ack_mail.objects.filter(sales_person_name = user['user']).values( 'reference_number','sales_person_name','sales_mail','sales_email_time','client_person_name','client_email','client_email_time','client_cc','client_subject','ack_time','quotation_time') for user in users]
     elif request.user.role_name == 'Manager':
         user_names=[]
         team_leads = User_record.objects.filter(reporting_to=request.user).values('user')
         employee = [User_record.objects.filter(reporting_to=team_members['user']).values('user') for team_members in team_leads]
         for each in employee:
-            record = [AckMail.objects.filter(sales_person_name = user['user']).values() for user in each]
+            record = [ack_mail.objects.filter(sales_person_name = user['user']).values( 'reference_number','sales_person_name','sales_mail','sales_email_time','client_person_name','client_email','client_email_time','client_cc','client_subject','ack_time','quotation_time') for user in each]
             user_names.append(record)
     elif request.user.role_name == 'Teamlead':
         users = User_record.objects.filter(reporting_to=request.user).values('user')
-        user_names = [AckMail.objects.filter(sales_person_name = user['user']).values() for user in users]
+        user_names = [ack_mail.objects.filter(sales_person_name = user['user']).values( 'reference_number','sales_person_name','sales_mail','sales_email_time','client_person_name','client_email','client_email_time','client_cc','client_subject','ack_time','quotation_time') for user in users]
     elif request.user.role_name == 'employee':
-        user_names = [AckMail.objects.filter(sales_mail = request.user.email).values()]
+        user_names = [ack_mail.objects.filter(sales_mail = request.user.email).values( 'reference_number','sales_person_name','sales_mail','sales_email_time','client_person_name','client_email','client_email_time','client_cc','client_subject','ack_time','quotation_time')]
        
     return Response(user_names)
     
@@ -156,7 +157,7 @@ def import_csv(request):
             if pd.notna(currency_value) and np.isnan(currency_value):
                 currency_value = None
 
-            AckMail.objects.create(
+            ack_mail.objects.create(
                 reference_number=row['reference_number'],
                 sales_mail=row['sales_mail'],
                 sales_email_time=row['sales_email_time'],
