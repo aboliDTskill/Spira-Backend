@@ -60,8 +60,6 @@ class User_record(AbstractBaseUser):
     def __str__(self):
         return self.user
 
-
-
 class ack_mail(models.Model):
     reference_number = models.CharField(max_length=255)
     sales_mail = models.CharField(max_length=255)
@@ -87,7 +85,69 @@ class ack_mail(models.Model):
     currency_value = models.CharField(max_length=255)
     reminder_status = models.CharField(max_length=255)
     ack_time = models.CharField(max_length=255)
-
+    order_ageing = models.CharField(max_length=255)
+    order_value = models.CharField(max_length=255)
+    order_date_time = models.CharField(max_length=255)
+    
     class Meta:
         managed = False
         db_table = 'ack_mail'
+
+
+
+
+class CustomerFeedback(models.Model):
+    form_timestamp = models.CharField(max_length=255)
+    form_date = models.CharField(max_length=255)
+    company_name = models.CharField(max_length=255)
+    client_name = models.CharField(max_length=255)
+    client_disignation = models.CharField(max_length=255)
+    telephone_number = models.CharField(max_length=255)
+    email_address = models.CharField(max_length=255)
+    quality_rate = models.CharField(max_length=255)
+    services_experience_rate = models.CharField(max_length=255)
+    technical_enquires_rate = models.CharField(max_length=255)
+    team_communication_rate = models.CharField(max_length=255)
+    team_help_rate = models.CharField(max_length=255)
+    product_quality_punctuality_rate = models.CharField(max_length=255)
+    customer_statisfaction_rate = models.CharField(max_length=255)
+    service_provider_rate = models.CharField(max_length=255)
+    about_team_product_service = models.CharField(max_length=255)
+    other_feedback = models.CharField(max_length=255)
+    doc_file = models.BinaryField(null=False, blank=False)
+    email_screenshot = models.BinaryField(null=False, blank=False)
+    
+    class Meta:
+        db_table = 'customer_feedback'
+
+    def __str__(self):
+        return self.client_name
+
+
+
+
+
+class PriceListV2(models.Model):
+    item = models.CharField(max_length=255)
+    winding_material = models.CharField(max_length=255)
+    filler_material = models.CharField(max_length=255)
+    inner_ring_material = models.CharField(max_length=255)
+    outer_ring_material = models.CharField(max_length=255)
+    material_size = models.CharField(max_length=255)
+    rating = models.CharField(max_length=100)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    
+
+    class Meta:
+        db_table = 'price_list_v2'
+
+
+
+from django.db import models
+
+class MtcV3(models.Model):
+    # Initially, we won't define any fields here
+    pass
+
+    class Meta:
+        db_table = 'mtc_v3'
