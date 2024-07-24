@@ -74,7 +74,7 @@ def main_start(data):
             'improvement_areas': entry[15],
             'feedback': entry[16],
         }
-        doc = DocxTemplate("Spira Power- Feedback Form V2.docx")
+        doc = DocxTemplate("doc_file_api_files/Spira Power- Feedback Form V2.docx")
         doc.render(entry_dict)
         file_path = "samp_output.docx"
         doc.save(file_path)

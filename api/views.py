@@ -468,6 +468,97 @@ def feedback_data(request):
 #     except Exception as e:
 #         return Response({"error": str(e)}, status=400)
 
+#################################### FETCHING THE FEEDBACK DATA AND RETURNING AS RESPONSE #################################
+
+
+
+# @api_view(['GET'])
+# def get_feedback_data(request):
+#     try:
+#         feedback_id = request.data.get('id')  # Use query_params for GET requests
+#         if not feedback_id:
+#             return Response({"error": "Feedback ID is required"}, status=400)
+        
+#         feedback = get_object_or_404(CustomerFeedback, pk=feedback_id)
+        
+#         if not feedback.email_screenshot:
+#             return Response({"error": "No screenshot data available"}, status=400)
+        
+#         try:
+#             email_screenshot_bytes = base64.b64decode(feedback.email_screenshot)
+#         except (base64.binascii.Error, ValueError):
+#             return Response({"error": "Base64 decoding failed"}, status=400)
+        
+#         try:
+#             feedback_json = email_screenshot_bytes.decode('utf-8')
+#             if not feedback_json:
+#                 return Response({"error": "Decoded JSON string is empty"}, status=400)
+#             feedback_dict = json.loads(feedback_json)
+#         except json.JSONDecodeError:
+#             return Response({"error": "JSON decoding failed"}, status=400)
+        
+#         return Response({"feedback_data": feedback_dict}, status=200)
+    
+#     except CustomerFeedback.DoesNotExist:
+#         return Response({"error": "Feedback not found"}, status=404)
+#     except Exception as e:
+#         return Response({"error": str(e)}, status=400)
+
+import base64
+import json
+import pdfkit
+from django.http import HttpResponse
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
+from .models import CustomerFeedback
+@api_view(['GET'])
+def get_feedback_data(request):
+    try:
+        feedback_id = request.data.get('id')  # Use query_params for GET requests
+        if not feedback_id:
+            return Response({"error": "Feedback ID is required"}, status=400)
+        
+        feedback = get_object_or_404(CustomerFeedback, pk=feedback_id)
+        
+        if not feedback.email_screenshot:
+            return Response({"error": "No screenshot data available"}, status=400)
+        
+        try:
+            email_screenshot_bytes = base64.b64decode(feedback.email_screenshot)
+        except (base64.binascii.Error, ValueError):
+            return Response({"error": "Base64 decoding failed"}, status=400)
+        
+        try:
+            feedback_json = email_screenshot_bytes.decode('utf-8')
+            if not feedback_json:
+                return Response({"error": "Decoded JSON string is empty"}, status=400)
+            feedback_dict = json.loads(feedback_json)
+        except json.JSONDecodeError:
+            return Response({"error": "JSON decoding failed"}, status=400)
+        
+        # Convert feedback_dict to HTML
+        html_content = "<html><body>"
+        for key, value in feedback_dict.items():
+            html_content += f"<p><strong>{key}:</strong> {value}</p>"
+        html_content += "</body></html>"
+        
+        # Generate PDF from HTML
+        pdf = pdfkit.from_string(html_content, False)
+        
+        # Return PDF as a response
+        response = HttpResponse(pdf, content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="feedback.pdf"'
+        return response
+    
+    except CustomerFeedback.DoesNotExist:
+        return Response({"error": "Feedback not found"}, status=404)
+    except Exception as e:
+        return Response({"error": str(e)}, status=400)
+
+
+
+
     
 
 #################################download docx##########################################
@@ -480,7 +571,7 @@ import json
 import docx2pdf
 import pythoncom
 from .models import CustomerFeedback
-from . import doc_templete_create_v1  # Ensure this is in the same directory or adjust the import path
+from doc_file_api_files import doc_templete_create_v1  # Ensure this is in the same directory or adjust the import path
 
 def doc_file(sample_data):
     print(sample_data)

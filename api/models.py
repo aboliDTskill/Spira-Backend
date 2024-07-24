@@ -97,6 +97,7 @@ class ack_mail(models.Model):
 
 
 class CustomerFeedback(models.Model):
+    
     form_timestamp = models.CharField(max_length=255)
     form_date = models.CharField(max_length=255)
     company_name = models.CharField(max_length=255)
@@ -114,7 +115,7 @@ class CustomerFeedback(models.Model):
     service_provider_rate = models.CharField(max_length=255)
     about_team_product_service = models.CharField(max_length=255)
     other_feedback = models.CharField(max_length=255)
-    doc_file = models.BinaryField(null=False, blank=False)
+    doc_file = models.BinaryField(null=True, blank=True)
     email_screenshot = models.BinaryField(null=False, blank=False)
     
     class Meta:
