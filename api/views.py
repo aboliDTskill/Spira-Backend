@@ -6,7 +6,7 @@ from rest_framework import status
 import json
 import numpy as np
 import pandas as pd
-from api.serializers import serialize_ackmails,AckMailSerializer
+from api.serializers import serialize_ackmails,AckMailSerializer, CustomerFeedbackSerializer
 from django.http import JsonResponse
 from datetime import datetime
 import json
@@ -326,183 +326,7 @@ def feedback_data(request):
 
 
 
-# @api_view(['POST'])
-# def feedback_data(request):
-#     try:
-#         data = json.loads(request.body)
-#         about_team_product_service = ', '.join(data.get('about_team_product_service', []))
-#         client_disignation = data.get('client_disignation')
-#         client_name = data.get('client_name')
-#         company_name = data.get('company_name')
-#         customer_statisfaction_rate = data.get('customer_statisfaction_rate')
-#         email_address = data.get('email_address')
-#         current_date = datetime.now().date()
-#         formatted_current_date = current_date.strftime("%m/%d/%Y")
-#         form_date = formatted_current_date
-#         current_date_and_time = datetime.now().replace(microsecond=0)
-#         form_timestamp = current_date_and_time
-#         other_feedback = data.get('other_feedback')
-#         product_quality_punctuality_rate = data.get('product_quality_punctuality_rate')
-#         quality_rate = data.get('quality_rate')
-#         service_provider_rate = ', '.join(data.get('service_provider_rate', []))
-#         services_experience_rate = data.get('services_experience_rate')
-#         team_communication_rate = data.get('team_communication_rate')
-#         team_help_rate = data.get('team_help_rate')
-#         technical_enquires_rate = data.get('technical_enquires_rate')
-#         telephone_number = data.get('telephone_number')
 
-#         feedback = CustomerFeedback(
-#             form_timestamp=form_timestamp,
-#             form_date=form_date,
-#             company_name=company_name,
-#             client_name=client_name,
-#             client_disignation=client_disignation,
-#             telephone_number=telephone_number,
-#             email_address=email_address,
-#             quality_rate=quality_rate,
-#             services_experience_rate=services_experience_rate,
-#             technical_enquires_rate=technical_enquires_rate,
-#             team_communication_rate=team_communication_rate,
-#             team_help_rate=team_help_rate,
-#             product_quality_punctuality_rate=product_quality_punctuality_rate,
-#             customer_statisfaction_rate=customer_statisfaction_rate,
-#             service_provider_rate=service_provider_rate,
-#             about_team_product_service=about_team_product_service,
-#             other_feedback=other_feedback
-#         )
-#         feedback.save()
-#         main(email_address)
-#         return Response({"message": "Data inserted successfully"}, status=201)
-#     except Exception as e:
-#         return Response({"error": str(e)}, status=400)
-# from rest_framework.decorators import api_view
-# from rest_framework.response import Response
-# from django.http import JsonResponse, HttpResponse
-# from django.utils.timezone import now
-# from reportlab.lib.pagesizes import letter
-# from reportlab.pdfgen import canvas
-# from api.models import CustomerFeedback
-# import json
-# import os
-# from io import BytesIO
-# from datetime import datetime
-
-# @api_view(['POST'])
-# def feedback_data(request):
-#     try:
-#         data = json.loads(request.body)
-#         about_team_product_service = ', '.join(data.get('about_team_product_service', []))
-#         client_disignation = data.get('client_disignation')
-#         client_name = data.get('client_name')
-#         company_name = data.get('company_name')
-#         customer_statisfaction_rate = data.get('customer_statisfaction_rate')
-#         email_address = data.get('email_address')
-#         current_date = datetime.now().date()
-#         formatted_current_date = current_date.strftime("%m/%d/%Y")
-#         form_date = formatted_current_date
-#         current_date_and_time = datetime.now().replace(microsecond=0)
-#         form_timestamp = current_date_and_time
-#         other_feedback = data.get('other_feedback')
-#         product_quality_punctuality_rate = data.get('product_quality_punctuality_rate')
-#         quality_rate = data.get('quality_rate')
-#         service_provider_rate = ', '.join(data.get('service_provider_rate', []))
-#         services_experience_rate = data.get('services_experience_rate')
-#         team_communication_rate = data.get('team_communication_rate')
-#         team_help_rate = data.get('team_help_rate')
-#         technical_enquires_rate = data.get('technical_enquires_rate')
-#         telephone_number = data.get('telephone_number')
-
-#         feedback = CustomerFeedback(
-#             form_timestamp=form_timestamp,
-#             form_date=form_date,
-#             company_name=company_name,
-#             client_name=client_name,
-#             client_disignation=client_disignation,
-#             telephone_number=telephone_number,
-#             email_address=email_address,
-#             quality_rate=quality_rate,
-#             services_experience_rate=services_experience_rate,
-#             technical_enquires_rate=technical_enquires_rate,
-#             team_communication_rate=team_communication_rate,
-#             team_help_rate=team_help_rate,
-#             product_quality_punctuality_rate=product_quality_punctuality_rate,
-#             customer_statisfaction_rate=customer_statisfaction_rate,
-#             service_provider_rate=service_provider_rate,
-#             about_team_product_service=about_team_product_service,
-#             other_feedback=other_feedback
-#         )
-#         feedback.save()
-#         main(email_address)
-        
-#         # Generate PDF
-#         buffer = BytesIO()
-#         p = canvas.Canvas(buffer, pagesize=letter)
-#         p.drawString(100, 750, f"Feedback Form")
-#         p.drawString(100, 730, f"Date: {form_date}")
-#         p.drawString(100, 710, f"Client Name: {client_name}")
-#         p.drawString(100, 690, f"Client Disignation: {client_disignation}")
-#         p.drawString(100, 670, f"Company Name: {company_name}")
-#         p.drawString(100, 650, f"Email Address: {email_address}")
-#         p.drawString(100, 630, f"Telephone Number: {telephone_number}")
-#         p.drawString(100, 610, f"Quality Rate: {quality_rate}")
-#         p.drawString(100, 590, f"Services Experience Rate: {services_experience_rate}")
-#         p.drawString(100, 570, f"Technical Enquires Rate: {technical_enquires_rate}")
-#         p.drawString(100, 550, f"Team Communication Rate: {team_communication_rate}")
-#         p.drawString(100, 530, f"Team Help Rate: {team_help_rate}")
-#         p.drawString(100, 510, f"Product Quality Punctuality Rate: {product_quality_punctuality_rate}")
-#         p.drawString(100, 490, f"Customer Statisfaction Rate: {customer_statisfaction_rate}")
-#         p.drawString(100, 470, f"Service Provider Rate: {service_provider_rate}")
-#         p.drawString(100, 450, f"About Team/Product/Service: {about_team_product_service}")
-#         p.drawString(100, 430, f"Other Feedback: {other_feedback}")
-
-#         p.showPage()
-#         p.save()
-
-#         buffer.seek(0)
-
-#         # Create response to download the PDF
-#         response = HttpResponse(buffer, content_type='application/pdf')
-#         response['Content-Disposition'] = 'attachment; filename="feedback.pdf"'
-#         return response
-
-#     except Exception as e:
-#         return Response({"error": str(e)}, status=400)
-
-#################################### FETCHING THE FEEDBACK DATA AND RETURNING AS RESPONSE #################################
-
-
-
-# @api_view(['GET'])
-# def get_feedback_data(request):
-#     try:
-#         feedback_id = request.data.get('id')  # Use query_params for GET requests
-#         if not feedback_id:
-#             return Response({"error": "Feedback ID is required"}, status=400)
-        
-#         feedback = get_object_or_404(CustomerFeedback, pk=feedback_id)
-        
-#         if not feedback.email_screenshot:
-#             return Response({"error": "No screenshot data available"}, status=400)
-        
-#         try:
-#             email_screenshot_bytes = base64.b64decode(feedback.email_screenshot)
-#         except (base64.binascii.Error, ValueError):
-#             return Response({"error": "Base64 decoding failed"}, status=400)
-        
-#         try:
-#             feedback_json = email_screenshot_bytes.decode('utf-8')
-#             if not feedback_json:
-#                 return Response({"error": "Decoded JSON string is empty"}, status=400)
-#             feedback_dict = json.loads(feedback_json)
-#         except json.JSONDecodeError:
-#             return Response({"error": "JSON decoding failed"}, status=400)
-        
-#         return Response({"feedback_data": feedback_dict}, status=200)
-    
-#     except CustomerFeedback.DoesNotExist:
-#         return Response({"error": "Feedback not found"}, status=404)
-#     except Exception as e:
-#         return Response({"error": str(e)}, status=400)
 
 import base64
 import json
@@ -555,40 +379,71 @@ def get_feedback_data(request):
         return Response({"error": "Feedback not found"}, status=404)
     except Exception as e:
         return Response({"error": str(e)}, status=400)
+    
+    ################################### GETTING ALL THE FEEDBACK DATA ######################################
+
+@api_view(['GET'])
+def get_all_feedback_data(request):
+    try:
+        # Fetch all the feedback data from the CustomerFeedback table
+        feedbacks = CustomerFeedback.objects.all()
+        
+        # Serialize the feedback data
+        serializer = CustomerFeedbackSerializer(feedbacks, many=True)
+        
+        # Return the serialized data as a JSON response
+        return Response(serializer.data, status=200)
+    except Exception as e:
+        return Response({"error": str(e)}, status=400)
+
+
+
 
 
 
 
     
 
-#################################download docx##########################################
+##########################################  Download docx ######################################################
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_http_methods
 from datetime import datetime
 from io import BytesIO
 import json
-import docx2pdf
-import pythoncom
+
 from .models import CustomerFeedback
 from doc_file_api_files import doc_templete_create_v1  # Ensure this is in the same directory or adjust the import path
 
+import subprocess
+from pathlib import Path
+
+def convert_docx_to_pdf(input_file: str, output_file: str):
+    try:
+        subprocess.run(['unoconv', '-f', 'pdf', '-o', output_file, input_file], check=True)
+        print(f"Conversion successful. PDF saved as {output_file}")
+    except subprocess.CalledProcessError as e:
+        print(f"Error during conversion: {e}")
+        return None
+
 def doc_file(sample_data):
     print(sample_data)
-    doc_templete_create_v1.main_start(sample_data)
+    # Your logic for doc_templete_create_v1.main_start(sample_data)
 
     input_file = "samp_output.docx"
     output_file = "samp_pdf_output.pdf"
-    pythoncom.CoInitialize()
-    docx2pdf.convert(input_file, output_file)
 
-    docx_file_path = "samp_pdf_output.pdf"
+    # Convert DOCX to PDF
+    convert_docx_to_pdf(input_file, output_file)
 
-    with open(docx_file_path, 'rb') as file:
-        pdf_data = file.read()
-
-    pdf_bytes = bytes(pdf_data)
-    return pdf_bytes
+    try:
+        with open(output_file, 'rb') as file:
+            pdf_data = file.read()
+        pdf_bytes = bytes(pdf_data)
+        return pdf_bytes
+    except Exception as e:
+        print(f"Failed to read the PDF file: {e}")
+        return None
 
 @api_view(["GET"])
 def download_docx(request, feedback_id):
@@ -635,11 +490,16 @@ def download_docx(request, feedback_id):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
-##########################################################################
 
+
+
+
+####################################### GET PRICE LIST WITH EXCEPTION HANDLING ####################################
+from django.http import JsonResponse
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db.utils import OperationalError
+from rest_framework.decorators import api_view
 from .models import PriceListV2
-
-
 
 
 @api_view(["POST"])
@@ -653,6 +513,10 @@ def get_price_list(request):
         outer_ring_material = data.get('outer_ring_material')
         material_size = data.get('material_size')
         rating = data.get('rating')
+
+        # Validate that all required parameters are provided
+        if not all([item, winding_material, filler_material, inner_ring_material, outer_ring_material, material_size, rating]):
+            raise ValueError("All parameters must be provided")
 
         # Query the database using Django ORM
         prices = PriceListV2.objects.filter(
@@ -668,57 +532,37 @@ def get_price_list(request):
         # Convert the QuerySet to a list
         price_list = list(prices)
 
+        if not price_list:
+            raise ObjectDoesNotExist("No matching prices found")
+
         return JsonResponse(price_list, safe=False)
 
+    except ValueError as ve:
+        return JsonResponse({"error": str(ve)}, status=400)
+    except ObjectDoesNotExist as odne:
+        return JsonResponse({"error": str(odne)}, status=404)
+    except ValidationError as ve:
+        return JsonResponse({"error": "Invalid data provided"}, status=400)
+    except OperationalError as oe:
+        return JsonResponse({"error": "Database connection error"}, status=500)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
-###########WITH EXCEPTION HANDLING######################
-# @api_view(["POST"])
-# def get_price_list(request):
-#     try:
-#         data = request.data
-#         item = data.get('item')
-#         winding_material = data.get('winding_material')
-#         filler_material = data.get('filler_material')
-#         inner_ring_material = data.get('inner_ring_material')
-#         outer_ring_material = data.get('outer_ring_material')
-#         material_size = data.get('material_size')
-#         rating = data.get('rating')
 
-#         # Validate that all required parameters are provided
-#         if not all([item, winding_material, filler_material, inner_ring_material, outer_ring_material, material_size, rating]):
-#             raise ValueError("All parameters must be provided")
+####################################### GET QUOTE  API ################################################ 
 
-#         # Query the database using Django ORM
-#         prices = PriceListV2.objects.filter(
-#             item=item,
-#             winding_material=winding_material,
-#             filler_material=filler_material,
-#             inner_ring_material=inner_ring_material,
-#             outer_ring_material=outer_ring_material,
-#             material_size=material_size,
-#             rating=rating
-#         ).values('price')
+from docxtpl import DocxTemplate
+import os
+import tempfile
+import aspose.words as aw
+from django.http import HttpResponse, JsonResponse
+from rest_framework.decorators import api_view
+from docxtpl import DocxTemplate
 
-#         # Convert the QuerySet to a list
-#         price_list = list(prices)
-
-#         if not price_list:
-#             raise ObjectDoesNotExist("No matching prices found")
-
-#         return JsonResponse(price_list, safe=False)
-
-#     except ValueError as ve:
-#         return JsonResponse({"error": str(ve)}, status=400)
-#     except ObjectDoesNotExist as odne:
-#         return JsonResponse({"error": str(odne)}, status=404)
-#     except ValidationError as ve:
-#         return JsonResponse({"error": "Invalid data provided"}, status=400)
-#     except OperationalError as oe:
-#         return JsonResponse({"error": "Database connection error"}, status=500)
-#     except Exception as e:
-#         return JsonResponse({"error": str(e)}, status=500)
-
+import os
+import tempfile
+import aspose.words as aw
+from django.http import HttpResponse, JsonResponse
+from rest_framework.decorators import api_view
 from docxtpl import DocxTemplate
 
 @api_view(["POST"])
@@ -726,28 +570,44 @@ def get_quote_list(request):
     try:
         data = request.data
         doc_template_path = "Quote_v1.docx"
-        doc_output_path = "quote_output_1.docx"
+        download_dir = "download_quote_pdf"
 
-        # Render the template with the provided data
-        doc = DocxTemplate(doc_template_path)
-        doc.render(data)
+        # Ensure the download directory exists
+        if not os.path.exists(download_dir):
+            os.makedirs(download_dir)
 
-        # Save the rendered document
-        doc.save(doc_output_path)
+        # Create a temporary directory to save the intermediate files
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            doc_output_path = os.path.join(tmpdirname, "quote_output_1.docx")
+            pdf_output_path = os.path.join(tmpdirname, "quote_output_1.pdf")
 
-        # Path to the converted PDF file
-        pdf_output_path = "spira_backend/quote_pdf_output.pdf"
+            # Render the template with the provided data
+            doc = DocxTemplate(doc_template_path)
+            doc.render(data)
 
-        # Optionally, convert the DOCX to PDF using external tool like LibreOffice or other converter
+            # Save the rendered document
+            doc.save(doc_output_path)
 
-        # Send the converted file as response
-        with open(pdf_output_path, 'rb') as pdf_file:
-            response = HttpResponse(pdf_file, content_type='application/pdf')
-            response['Content-Disposition'] = 'attachment; filename="quote_pdf_output.pdf"'
-            return response
+            # Convert the DOCX to PDF using Aspose.Words
+            doc_aspose = aw.Document(doc_output_path)
+            doc_aspose.save(pdf_output_path)
+
+            # Define the final path to save the PDF in the download directory
+            final_pdf_path = os.path.join(download_dir, "quote_output_1.pdf")
+
+            # Move the converted PDF to the download directory
+            os.rename(pdf_output_path, final_pdf_path)
+
+            # Send the converted file as a response
+            with open(final_pdf_path, 'rb') as pdf_file:
+                response = HttpResponse(pdf_file, content_type='application/pdf')
+                response['Content-Disposition'] = 'attachment; filename="quote_output_1.pdf"'
+                return response
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
+
     
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile

@@ -13,14 +13,18 @@ urlpatterns = [
     path('waiting_quote',views.get_waiting_quote_record),
     path('waiting_order',views.get_waiting_order_record),
     path('order_place',views.get_order_placed_record),
-    path('customer_feedback',views.feedback_data),#filling feedback data and storing the binary form of it 
-    path('get_feedback_data', views.get_feedback_data),#fetching the feeedback
-    path('download_docx/<int:feedback_id>', views.download_docx, name='download_docx'),
-    path('price_list', views.get_price_list),
-    path('quote_file', views.get_quote_list),
-    path('upload_pdf', views.upload_pdf),
+    path('customer_feedback',views.feedback_data),#filling feedback data and storing the binary form of it #remain
+    path('get_feedback_data', views.get_feedback_data),#fetching the feeedback ##
+    path('get_all_feedback_data', views.get_all_feedback_data), ##fethcing all feedback daata
+    path('download_docx/<int:feedback_id>', views.download_docx, name='download_docx'),    #done created readme file for this 
+    path('price_list', views.get_price_list), #
+    path('quote_file', views.get_quote_list),#
+    path('upload_pdf', views.upload_pdf),                 
     
-    
-    
+    #checking heatno 
+    # generating mtc
+#all feedback data  #done
+# non combination price list   #DONE
+# generate quote    done
 
 ]
