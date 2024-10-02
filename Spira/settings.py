@@ -12,8 +12,8 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
-
-
+import logging
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -28,9 +28,9 @@ SECRET_KEY = 'django-insecure-c79l%9v&k_zo)nsi(j+-)&i*qg_gxw+5iqor(ju$a!(vafb(oi
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-CSRF_TRUSTED_ORIGINS = ['http://*.localhost:3000','http://13.200.63.189:3000','https://spira.dtskill.com']
-CORS_ALLOWED_ORIGINS = ['http://localhost:3000','http://13.200.63.189:3000','https://spira.dtskill.com']
-CORS_ORIGIN_WHITELIST  = ["http://localhost:3000",'http://13.200.63.189:3000','https://spira.dtskill.com']
+CSRF_TRUSTED_ORIGINS = ['http://*.localhost:3000','http://13.200.63.189:3000','https://spira.dtskill.com','http://*.20.124.81.185:5819']
+CORS_ALLOWED_ORIGINS = ['http://localhost:3000','http://13.200.63.189:3000','https://spira.dtskill.com','http://20.124.81.185:5819']
+CORS_ORIGIN_WHITELIST  = ["http://localhost:3000",'http://13.200.63.189:3000','https://spira.dtskill.com','http://20.124.81.185:5819']
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -60,6 +60,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'logging_config.LoggingMiddleware',
     
 ]
 
@@ -76,6 +77,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                
             ],
         },
     },
@@ -100,16 +102,31 @@ AUTHENTICATION_BACKENDS = [
 #     }
 # }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'spirapower',
+#         'USER': 'postgres',
+#         'PASSWORD': 'test@123',
+#         'HOST': '20.124.81.185',
+#         'PORT': '5432',
+#     }
+# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'spirapower',
+        'NAME': 'spira',
         'USER': 'postgres',
-        'PASSWORD': 'test@123',
-        'HOST': '20.124.81.185',
+        'PASSWORD': 'Dtmyspica24',
+        'HOST': 'my-db-instance.cv1w79xov7zb.ap-south-1.rds.amazonaws.com',
         'PORT': '5432',
     }
 }
+
+
+
+
 
 
 
@@ -167,3 +184,37 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=20),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1)}
+
+
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        'username': {
+            '()': 'logging_config.LoggedInUsernameFilter',  # Replace with your custom filter path
+        },
+    },
+    'formatters': {
+        'verbose': {
+            'format': '%(asctime)s - %(levelname)s - %(message)s [User: %(username)s]',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': 'logs\debug.log',
+            'formatter': 'verbose',
+            'filters': ['username'],
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}

@@ -3,12 +3,28 @@ from api import views
 
 urlpatterns = [
 
-    path('create_ack',views.Create_AckMail),
-    path('read',views.read_Ackmail),
+    path('create_ack',views.Create_AckMail),#
+    path('read',views.read_Ackmail),#
     path('delete',views.delete_Ackmail),
     path('update/<str:pk>',views.update_ackmail),
     path('get_users',views.get_users),
     path('users_db',views.get_user_db),
-    path('import-csv', views.import_csv,),
+    path('import-csv', views.import_csv,),#
+    path('waiting_quote',views.get_waiting_quote_record),
+    path('waiting_order',views.get_waiting_order_record),
+    path('order_place',views.get_order_placed_record),
+    path('customer_feedback',views.feedback_data),#filling feedback data and storing the binary form of it #remain
+    path('get_feedback_data', views.get_feedback_data),#fetching the feeedback ##
+    path('get_all_feedback_data', views.get_all_feedback_data), ##fethcing all feedback daata
+    path('download_docx/<int:feedback_id>', views.download_docx, name='download_docx'),    #done created readme file for this 
+    path('price_list', views.get_price_list), #
+    path('quote_file', views.get_quote_list),#
+    path('upload_pdf', views.upload_pdf),                 
+    
+    #checking heatno 
+    # generating mtc
+#all feedback data  #done
+# non combination price list   #DONE
+# generate quote    done
 
 ]

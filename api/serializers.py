@@ -40,3 +40,13 @@ def serialize_ackmails(ackmails):
             "quotation_attachment": ackmail.quotation_attachment if ackmail.quotation_attachment else None,
         })
     return serialized_data
+
+
+
+from rest_framework import serializers
+from .models import CustomerFeedback
+
+class CustomerFeedbackSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomerFeedback
+        fields = '__all__'
