@@ -21,3 +21,7 @@ docxtpl==0.17.0
 pdf2image==1.17.0
 pytesseract==0.3.10
 aspose-words==24.7.0 #for download docx api
+beautifulsoup4
+psycopg2==2.9.5  # Use psycopg2 instead of psycopg2-binary
+docxcompose==1.4.0
+whitenoise==6.4.0  # or the latest version available
