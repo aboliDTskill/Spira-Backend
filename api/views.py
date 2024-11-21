@@ -1,12 +1,16 @@
 from django.shortcuts import render
-from api.models import User_record, ack_mail
+from api.models import User_record, ack_mail, CustomerFeedback
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 import json
 import numpy as np
 import pandas as pd
-from api.serializers import serialize_ackmails,AckMailSerializer
+from api.serializers import serialize_ackmails,AckMailSerializer, CustomerFeedbackSerializer
+from django.http import JsonResponse
+from datetime import datetime
+import json
+import base64
 # Create your views here.
 @api_view(['POST'])
 def Create_AckMail(request):
@@ -67,8 +71,8 @@ def delete_Ackmail(request):
 @api_view(['GET'])
 def read_Ackmail(request):
     try:
-        ack_mail = ack_mail.objects.all()
-        serialized_ackmails = serialize_ackmails(ack_mail)
+        ack_maill = ack_mail.objects.all()
+        serialized_ackmails = serialize_ackmails(ack_maill)
         return Response(serialized_ackmails, status=status.HTTP_200_OK)
     except Exception as e:
         return Response(str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -90,16 +94,11 @@ def update_ackmail(request, pk):
         ackmail_query = ack_mail.objects.filter(reference_number=pk, sales_mail=email)
 
         if ackmail_query.exists():
-            ackmail = ackmail_query.first()
-            serializer = AckMailSerializer(ackmail, data=data_dict, partial=True)
-
             allowed_roles = ['admin', 'Manager', 'Teamlead']
             if request.user.role_name in allowed_roles:
-                if serializer.is_valid():
-                    serializer.save()
-                    return Response('Updated Successfully', status=status.HTTP_200_OK)
-                else:
-                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                columns = {key: value for key, value in data_dict.items()}
+                ack_mail.objects.filter(reference_number=pk, sales_mail=email).update(**columns) 
+                return Response('Updated Successfully', status=status.HTTP_200_OK)
             else:
                 return Response('Permission denied. Only Managers, Team Leads, and Admins can update AckMail.', status=status.HTTP_403_FORBIDDEN)
 
@@ -128,19 +127,19 @@ def get_users(request):
 def get_user_db(request):
     if request.user.role_name == 'admin':
         users = User_record.objects.all().values('user')
-        user_names = [ack_mail.objects.filter(sales_person_name = user['user']).values( 'reference_number','sales_person_name','sales_mail','sales_email_time','client_person_name','client_email','client_email_time','client_cc','client_subject','ack_time','quotation_time') for user in users]
+        user_names = [ack_mail.objects.filter(sales_person_name = user['user']).values( 'reminder_status','reference_number','sales_person_name','sales_mail','sales_email_time','client_person_name','client_email','client_email_time','client_cc','client_subject','ack_time','quotation_time') for user in users]
     elif request.user.role_name == 'Manager':
         user_names=[]
         team_leads = User_record.objects.filter(reporting_to=request.user).values('user')
         employee = [User_record.objects.filter(reporting_to=team_members['user']).values('user') for team_members in team_leads]
         for each in employee:
-            record = [ack_mail.objects.filter(sales_person_name = user['user']).values( 'reference_number','sales_person_name','sales_mail','sales_email_time','client_person_name','client_email','client_email_time','client_cc','client_subject','ack_time','quotation_time') for user in each]
+            record = [ack_mail.objects.filter(sales_person_name = user['user']).values( 'reminder_status','reference_number','sales_person_name','sales_mail','sales_email_time','client_person_name','client_email','client_email_time','client_cc','client_subject','ack_time','quotation_time') for user in each]
             user_names.append(record)
     elif request.user.role_name == 'Teamlead':
         users = User_record.objects.filter(reporting_to=request.user).values('user')
-        user_names = [ack_mail.objects.filter(sales_person_name = user['user']).values( 'reference_number','sales_person_name','sales_mail','sales_email_time','client_person_name','client_email','client_email_time','client_cc','client_subject','ack_time','quotation_time') for user in users]
+        user_names = [ack_mail.objects.filter(sales_person_name = user['user']).values( 'reminder_status','reference_number','sales_person_name','sales_mail','sales_email_time','client_person_name','client_email','client_email_time','client_cc','client_subject','ack_time','quotation_time') for user in users]
     elif request.user.role_name == 'employee':
-        user_names = [ack_mail.objects.filter(sales_mail = request.user.email).values( 'reference_number','sales_person_name','sales_mail','sales_email_time','client_person_name','client_email','client_email_time','client_cc','client_subject','ack_time','quotation_time')]
+        user_names = [ack_mail.objects.filter(sales_mail = request.user.email).values( 'reminder_status','reference_number','sales_person_name','sales_mail','sales_email_time','client_person_name','client_email','client_email_time','client_cc','client_subject','ack_time','quotation_time')]
        
     return Response(user_names)
     
@@ -195,3 +194,454 @@ def import_csv(request):
         return Response(f'Missing required field in CSV: {str(e)}', status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
         return Response(str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+def get_waiting_quote_record(request):
+    if request.user.role_name == 'admin':
+        users = User_record.objects.all().values('user')
+        user_names = [ack_mail.objects.filter(sales_person_name = user['user'],reminder_status='pending').values('sales_mail','client_cc','ack_time','client_email','reference_number','sales_person_name','reminder_status','order_ageing','client_person_name','client_subject','client_email_time','sales_email_time') for user in users]
+    elif request.user.role_name == 'Manager':
+        user_names=[]
+        team_leads = User_record.objects.filter(reporting_to=request.user).values('user')
+        employee = [User_record.objects.filter(reporting_to=team_members['user']).values('user') for team_members in team_leads]
+        for each in employee:
+            record = [ack_mail.objects.filter(sales_person_name = user['user'],reminder_status='pending').values( 'sales_mail','client_cc','ack_time','client_email','reference_number','sales_person_name','reminder_status','order_ageing','client_person_name','client_subject','client_email_time','sales_email_time') for user in each]
+            user_names.append(record)
+    elif request.user.role_name == 'Teamlead':
+        users = User_record.objects.filter(reporting_to=request.user).values('user')
+        user_names = [ack_mail.objects.filter(sales_person_name = user['user'],reminder_status='pending').values( 'sales_mail','client_cc','ack_time','client_email','reference_number','sales_person_name','reminder_status','order_ageing','client_person_name','client_subject','client_email_time','sales_email_time') for user in users]
+    elif request.user.role_name == 'employee':
+        user_names = [ack_mail.objects.filter(sales_mail = request.user.email,reminder_status='pending').values( 'sales_mail','client_cc','ack_time','client_email','reference_number','sales_person_name','reminder_status','order_ageing','client_person_name','client_subject','client_email_time','sales_email_time')]
+    return Response(user_names)
+
+
+@api_view(['GET'])
+def get_waiting_order_record(request):
+    if request.user.role_name == 'admin':
+        users = User_record.objects.all().values('user')
+        user_names = [ack_mail.objects.filter(sales_person_name = user['user'],reminder_status='success').values('sales_mail', 'client_email','reference_number','sales_person_name','reminder_status','order_ageing','client_person_name','client_subject','client_email_time','quotation_time') for user in users]
+    elif request.user.role_name == 'Manager':
+        user_names=[]
+        team_leads = User_record.objects.filter(reporting_to=request.user).values('user')
+        employee = [User_record.objects.filter(reporting_to=team_members['user']).values('user') for team_members in team_leads]
+        for each in employee:
+            record = [ack_mail.objects.filter(sales_person_name = user['user'],reminder_status='success').values( 'sales_mail','client_email','reference_number','sales_person_name','reminder_status','order_ageing','client_person_name','client_subject','client_email_time','quotation_time') for user in each]
+            user_names.append(record)
+    elif request.user.role_name == 'Teamlead':
+        users = User_record.objects.filter(reporting_to=request.user).values('user')
+        user_names = [ack_mail.objects.filter(sales_person_name = user['user'],reminder_status='success').values( 'sales_mail','client_email','reference_number','sales_person_name','reminder_status','order_ageing','client_person_name','client_subject','client_email_time','quotation_time') for user in users]
+    elif request.user.role_name == 'employee':
+        user_names = [ack_mail.objects.filter(sales_mail = request.user.email,reminder_status='success').values( 'sales_mail','client_email','reference_number','sales_person_name','reminder_status','order_ageing','client_person_name','client_subject','client_email_time','quotation_time')]
+    return Response(user_names)
+
+@api_view(['GET'])
+def get_order_placed_record(request):
+    if request.user.role_name == 'admin':
+        users = User_record.objects.all().values('user')
+        user_names = [ack_mail.objects.filter(sales_person_name = user['user'],reminder_status='order_placed').values('client_email','reference_number','sales_person_name','reminder_status','order_value','order_date_time') for user in users]
+    elif request.user.role_name == 'Manager':
+        user_names=[]
+        team_leads = User_record.objects.filter(reporting_to=request.user).values('user')
+        employee = [User_record.objects.filter(reporting_to=team_members['user']).values('user') for team_members in team_leads]
+        for each in employee:
+            record = [ack_mail.objects.filter(sales_person_name = user['user'],reminder_status='order_placed').values('client_email','reference_number','sales_person_name','reminder_status','order_value','order_date_time') for user in each]
+            user_names.append(record)
+    elif request.user.role_name == 'Teamlead':
+        users = User_record.objects.filter(reporting_to=request.user).values('user')
+        user_names = [ack_mail.objects.filter(sales_person_name = user['user'],reminder_status='order_placed').values('client_email','reference_number','sales_person_name','reminder_status','order_value','order_date_time') for user in users]
+    elif request.user.role_name == 'employee':
+        user_names = [ack_mail.objects.filter(sales_mail = request.user.email,reminder_status='order_placed').values('client_email','reference_number','sales_person_name','reminder_status','order_value','order_date_time')]
+    return Response(user_names)
+
+########################################### FEEDBACK  API ####################################################
+
+from files.email_feedback import main
+@api_view(['POST'])
+def feedback_data(request):
+    try:
+        # Parse the JSON data from the request body
+        data = json.loads(request.body)
+        
+        # Create a dictionary with all feedback fields
+        feedback_dict = {
+            'about_team_product_service': ', '.join(data.get('about_team_product_service', [])),
+            'client_disignation': data.get('client_disignation'),
+            'client_name': data.get('client_name'),
+            'company_name': data.get('company_name'),
+            'customer_statisfaction_rate': data.get('customer_statisfaction_rate'),
+            'email_address': data.get('email_address'),
+            'form_date': datetime.now().date().strftime("%m/%d/%Y"),
+            'form_timestamp': datetime.now().replace(microsecond=0).isoformat(),
+            'other_feedback': data.get('other_feedback'),
+            'product_quality_punctuality_rate': data.get('product_quality_punctuality_rate'),
+            'quality_rate': data.get('quality_rate'),
+            'service_provider_rate': ', '.join(data.get('service_provider_rate', [])),
+            'services_experience_rate': data.get('services_experience_rate'),
+            'team_communication_rate': data.get('team_communication_rate'),
+            'team_help_rate': data.get('team_help_rate'),
+            'technical_enquires_rate': data.get('technical_enquires_rate'),
+            'telephone_number': data.get('telephone_number')
+        }
+
+        # Serialize the dictionary to a JSON string
+        
+        feedback_json = json.dumps(feedback_dict, ensure_ascii=False)
+        print(feedback_json)
+        # Encode the JSON string to bytes and then to base64
+        feedback_bytes = feedback_json.encode('utf-8')
+        
+        print(feedback_bytes)
+        email_screenshot_base64 = base64.b64encode(feedback_bytes)
+        
+        # Create and save the CustomerFeedback instance
+        feedback = CustomerFeedback(
+            form_timestamp=feedback_dict['form_timestamp'],
+            form_date=feedback_dict['form_date'],
+            company_name=feedback_dict['company_name'],
+            client_name=feedback_dict['client_name'],
+            client_disignation=feedback_dict['client_disignation'],
+            telephone_number=feedback_dict['telephone_number'],
+            email_address=feedback_dict['email_address'],
+            quality_rate=feedback_dict['quality_rate'],
+            services_experience_rate=feedback_dict['services_experience_rate'],
+            technical_enquires_rate=feedback_dict['technical_enquires_rate'],
+            team_communication_rate=feedback_dict['team_communication_rate'],
+            team_help_rate=feedback_dict['team_help_rate'],
+            product_quality_punctuality_rate=feedback_dict['product_quality_punctuality_rate'],
+            customer_statisfaction_rate=feedback_dict['customer_statisfaction_rate'],
+            service_provider_rate=feedback_dict['service_provider_rate'],
+            about_team_product_service=feedback_dict['about_team_product_service'],
+            other_feedback=feedback_dict['other_feedback'],
+            email_screenshot=email_screenshot_base64  # Save base64 encoded data
+        )
+        
+        feedback.save()
+        
+        print(feedback_dict['email_address'])
+        main(feedback_dict['email_address'])
+        return Response({"message": "Data inserted successfully"}, status=201)
+    except Exception as e:
+        return Response({"error": str(e)}, status=400)
+
+
+
+
+
+import base64
+import json
+import pdfkit
+from django.http import HttpResponse
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
+from .models import CustomerFeedback
+@api_view(['GET'])
+def get_feedback_data(request):
+    try:
+        feedback_id = request.data.get('id')  # Use query_params for GET requests
+        if not feedback_id:
+            return Response({"error": "Feedback ID is required"}, status=400)
+        
+        feedback = get_object_or_404(CustomerFeedback, pk=feedback_id)
+        
+        if not feedback.email_screenshot:
+            return Response({"error": "No screenshot data available"}, status=400)
+        
+        try:
+            email_screenshot_bytes = base64.b64decode(feedback.email_screenshot)
+        except (base64.binascii.Error, ValueError):
+            return Response({"error": "Base64 decoding failed"}, status=400)
+        
+        try:
+            feedback_json = email_screenshot_bytes.decode('utf-8')
+            if not feedback_json:
+                return Response({"error": "Decoded JSON string is empty"}, status=400)
+            feedback_dict = json.loads(feedback_json)
+        except json.JSONDecodeError:
+            return Response({"error": "JSON decoding failed"}, status=400)
+        
+        # Convert feedback_dict to HTML
+        html_content = "<html><body>"
+        for key, value in feedback_dict.items():
+            html_content += f"<p><strong>{key}:</strong> {value}</p>"
+        html_content += "</body></html>"
+        
+        # Generate PDF from HTML
+        pdf = pdfkit.from_string(html_content, False)
+        
+        # Return PDF as a response
+        response = HttpResponse(pdf, content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="feedback.pdf"'
+        return response
+    
+    except CustomerFeedback.DoesNotExist:
+        return Response({"error": "Feedback not found"}, status=404)
+    except Exception as e:
+        return Response({"error": str(e)}, status=400)
+    
+    ################################### GETTING ALL THE FEEDBACK DATA ######################################
+
+@api_view(['GET'])
+def get_all_feedback_data(request):
+    try:
+        # Fetch all the feedback data from the CustomerFeedback table
+        feedbacks = CustomerFeedback.objects.all()
+        
+        # Serialize the feedback data
+        serializer = CustomerFeedbackSerializer(feedbacks, many=True)
+        
+        # Return the serialized data as a JSON response
+        return Response(serializer.data, status=200)
+    except Exception as e:
+        return Response({"error": str(e)}, status=400)
+
+
+
+
+
+
+
+    
+
+##########################################  Download docx ######################################################
+from django.shortcuts import get_object_or_404
+from django.http import JsonResponse, HttpResponse
+from django.views.decorators.http import require_http_methods
+from datetime import datetime
+from io import BytesIO
+import json
+
+from .models import CustomerFeedback
+from doc_file_api_files import doc_templete_create_v1  # Ensure this is in the same directory or adjust the import path
+
+import subprocess
+from pathlib import Path
+
+def convert_docx_to_pdf(input_file: str, output_file: str):
+    try:
+        subprocess.run(['unoconv', '-f', 'pdf', '-o', output_file, input_file], check=True)
+        print(f"Conversion successful. PDF saved as {output_file}")
+    except subprocess.CalledProcessError as e:
+        print(f"Error during conversion: {e}")
+        return None
+
+def doc_file(sample_data):
+    print(sample_data)
+    # Your logic for doc_templete_create_v1.main_start(sample_data)
+
+    input_file = "samp_output.docx"
+    output_file = "samp_pdf_output.pdf"
+
+    # Convert DOCX to PDF
+    convert_docx_to_pdf(input_file, output_file)
+
+    try:
+        with open(output_file, 'rb') as file:
+            pdf_data = file.read()
+        pdf_bytes = bytes(pdf_data)
+        return pdf_bytes
+    except Exception as e:
+        print(f"Failed to read the PDF file: {e}")
+        return None
+
+@api_view(["GET"])
+def download_docx(request, feedback_id):
+    try:
+        feedback = get_object_or_404(CustomerFeedback, pk=feedback_id)
+        
+        if feedback.doc_file is None:
+            print("hwllo+++++++++++++++++++++++")
+            sample_data = [
+                feedback.form_timestamp,
+                feedback.form_date,
+                feedback.company_name,
+                feedback.client_name,
+                feedback.client_disignation,
+                feedback.telephone_number,
+                feedback.email_address,
+                feedback.quality_rate,
+                feedback.services_experience_rate,
+                feedback.technical_enquires_rate,
+                feedback.team_communication_rate,
+                feedback.team_help_rate,
+                feedback.product_quality_punctuality_rate,
+                feedback.customer_statisfaction_rate,
+                feedback.service_provider_rate,
+                feedback.about_team_product_service,
+                feedback.other_feedback
+            ]
+            doc_data = doc_file([sample_data])
+            feedback.doc_file = doc_data
+            feedback.save()
+        else:
+            doc_data = feedback.doc_file
+
+        # Create a BytesIO object to send the file as attachment
+        file_obj = BytesIO()
+        file_obj.write(doc_data)
+        file_obj.seek(0)
+
+        # Set the response headers for attachment download
+        response = HttpResponse(file_obj, content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename=downloaded_doc.pdf'
+        return response
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+
+
+
+####################################### GET PRICE LIST WITH EXCEPTION HANDLING ####################################
+from django.http import JsonResponse
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db.utils import OperationalError
+from rest_framework.decorators import api_view
+from .models import PriceListV2
+
+
+@api_view(["POST"])
+def get_price_list(request):
+    try:
+        data = request.data
+        item = data.get('item')
+        winding_material = data.get('winding_material')
+        filler_material = data.get('filler_material')
+        inner_ring_material = data.get('inner_ring_material')
+        outer_ring_material = data.get('outer_ring_material')
+        material_size = data.get('material_size')
+        rating = data.get('rating')
+
+        # Validate that all required parameters are provided
+        if not all([item, winding_material, filler_material, inner_ring_material, outer_ring_material, material_size, rating]):
+            raise ValueError("All parameters must be provided")
+
+        # Query the database using Django ORM
+        prices = PriceListV2.objects.filter(
+            item=item,
+            winding_material=winding_material,
+            filler_material=filler_material,
+            inner_ring_material=inner_ring_material,
+            outer_ring_material=outer_ring_material,
+            material_size=material_size,
+            rating=rating
+        ).values('price')
+
+        # Convert the QuerySet to a list
+        price_list = list(prices)
+
+        if not price_list:
+            raise ObjectDoesNotExist("No matching prices found")
+
+        return JsonResponse(price_list, safe=False)
+
+    except ValueError as ve:
+        return JsonResponse({"error": str(ve)}, status=400)
+    except ObjectDoesNotExist as odne:
+        return JsonResponse({"error": str(odne)}, status=404)
+    except ValidationError as ve:
+        return JsonResponse({"error": "Invalid data provided"}, status=400)
+    except OperationalError as oe:
+        return JsonResponse({"error": "Database connection error"}, status=500)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+####################################### GET QUOTE  API ################################################ 
+
+from docxtpl import DocxTemplate
+import os
+import tempfile
+import aspose.words as aw
+from django.http import HttpResponse, JsonResponse
+from rest_framework.decorators import api_view
+from docxtpl import DocxTemplate
+
+import os
+import tempfile
+import aspose.words as aw
+from django.http import HttpResponse, JsonResponse
+from rest_framework.decorators import api_view
+from docxtpl import DocxTemplate
+
+@api_view(["POST"])
+def get_quote_list(request):
+    try:
+        data = request.data
+        doc_template_path = "Quote_v1.docx"
+        download_dir = "download_quote_pdf"
+
+        # Ensure the download directory exists
+        if not os.path.exists(download_dir):
+            os.makedirs(download_dir)
+
+        # Create a temporary directory to save the intermediate files
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            doc_output_path = os.path.join(tmpdirname, "quote_output_1.docx")
+            pdf_output_path = os.path.join(tmpdirname, "quote_output_1.pdf")
+
+            # Render the template with the provided data
+            doc = DocxTemplate(doc_template_path)
+            doc.render(data)
+
+            # Save the rendered document
+            doc.save(doc_output_path)
+
+            # Convert the DOCX to PDF using Aspose.Words
+            doc_aspose = aw.Document(doc_output_path)
+            doc_aspose.save(pdf_output_path)
+
+            # Define the final path to save the PDF in the download directory
+            final_pdf_path = os.path.join(download_dir, "quote_output_1.pdf")
+
+            # Move the converted PDF to the download directory
+            os.rename(pdf_output_path, final_pdf_path)
+
+            # Send the converted file as a response
+            with open(final_pdf_path, 'rb') as pdf_file:
+                response = HttpResponse(pdf_file, content_type='application/pdf')
+                response['Content-Disposition'] = 'attachment; filename="quote_output_1.pdf"'
+                return response
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+    
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from pdfupload import pdf_to_img
+
+import os
+
+@api_view(["POST"])
+def upload_pdf(request):
+    try:
+        # Check if a PDF file is present in the request
+        if 'file' not in request.FILES:
+            return JsonResponse({'error': 'No file part'}, status=400)
+        
+        file = request.FILES['file']
+        print(file.name+"44444444444444444444444444444444444")
+        # Check if the file is a PDF
+        if file.name == '':
+            return JsonResponse({'error': 'No selected file'}, status=400)
+
+        if file and file.name.endswith('.pdf'):
+            # Save the file to the uploads folder
+            path = os.path.join("pdf_files", 'pdf_extraction.pdf')
+            default_storage.save(path, ContentFile(file.read()))
+        
+            print("dsffffffffffffffffffffffffffffffffffffffff")
+            main_output_folder = "output_image"
+            texts_to_detect = ["Chemical Composition (%)", 'Mechanical Properties']
+            print(path)
+            pdf_to_img.crop_pdf_pages_with_text(path, main_output_folder, texts_to_detect)
+            pdf_to_img.fetch_jpeg_images(main_output_folder)
+
+            return JsonResponse({'message': 'File uploaded successfully', 'filename': path})
+        else:
+            return JsonResponse({'error': 'Invalid file format'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

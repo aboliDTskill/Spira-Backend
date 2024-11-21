@@ -1,32 +1,40 @@
 pipeline {
-    agent { label 'spira-backend-worker' } // Replace 'your-worker-node-label' with the label of your worker node
+    
+    agent {
+        // Specify the label of the node you want to run the pipeline on
+        node {
+            label 'Spira-dev'
+            }
+    }
 
     stages {
-        stage('Setup Python Virtual ENV for dependencies') {
+        stage('Build Docker Image') {
             steps {
-                sh '''
-                    chmod +x envsetup.sh
-                    ./envsetup.sh
-                '''
+                script {
+                    // Define Dockerfile path
+                    def dockerfilePath = '/var/lib/jenkins/workspace/Spira-Backend-Dev/Dockerfile'
+                    
+                    // Build Docker image
+                    def dockerImage = docker.build("spira-backend${env.BUILD_NUMBER}", "-f ${dockerfilePath} .")
+                    
+                }
             }
         }
-
-        stage('Setup Gunicorn Setup') {
+        stage('Run Docker Container') {
             steps {
-                sh '''
-                    chmod +x gunicorn.sh
-                    ./gunicorn.sh
-                '''
+                script {
+                    // Run Docker container from the built image
+                    sh "docker run -d -p 8000:8000 --name spira-backend-dev${env.BUILD_NUMBER} spira-backend${env.BUILD_NUMBER}"
+                }
             }
         }
-
-        stage('Setup NGINX') {
-            steps {
-                sh '''
-                    chmod +x nginx.sh
-                    ./nginx.sh
-                '''
-            }
+    }
+    post {
+        success {
+            echo 'Docker image built and container running successfully'
+        }
+        failure {
+            echo 'Failed to build Docker image or run Docker container'
         }
     }
 }

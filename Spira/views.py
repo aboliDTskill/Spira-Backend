@@ -42,12 +42,13 @@ def login(request):
             auth.login(request, user_k)
             refresh = RefreshToken.for_user(user_k)
             access_token = str(refresh.access_token)
+            user_record = User_record.objects.get(email=email)
             user_data = {
-                'procurement': user_k.procurement,
-                'quote_generator': user_k.quote_generator,
-                'user_management': user_k.user_management,
-                'quality': user_k.quality,
-                'sales_tracker': user_k.sales_tracker
+                'procurement': user_record.procurement,
+                'quote_generator': user_record.quote_generator,
+                'user_management': user_record.user_management,
+                'quality': user_record.quality,
+                'sales_tracker': user_record.sales_tracker
             }
             return Response({'output': {'username': email,'Name': request.user.user,'Role': request.user.role_name,'accessibilitys': user_data,'access_token': access_token}}, status=status.HTTP_200_OK)
         else:
@@ -78,3 +79,25 @@ def update_user_fields(request):
             return Response({'error': 'Permission denied. Only Managers can update user information.'}, status=status.HTTP_403_FORBIDDEN)
     except Exception as e:
         return Response(str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+from rest_framework.permissions import IsAuthenticated
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_data(request):
+    try:
+        user_record = User_record.objects.get(email=request.user.email)
+        user_data = {
+            'user_email': user_record.email,
+            'procurement': user_record.procurement,
+            'quote_generator': user_record.quote_generator,
+            'user_management': user_record.user_management,
+            'quality': user_record.quality,
+            'sales_tracker': user_record.sales_tracker,
+            "role_name": user_record.role_name,
+            "name":user_record.user
+
+        }
+        return Response({'user_data': user_data}, status=status.HTTP_200_OK)
+    except User_record.DoesNotExist:
+        return Response({'error': 'User data not found'}, status=status.HTTP_404_NOT_FOUND)

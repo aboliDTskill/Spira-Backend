@@ -25,5 +25,6 @@ urlpatterns = [
     path('delete',views.delete_users),
     path('api/',include('api.urls')),
     path('update-user', views.update_user_fields, name='update_user'),
+    path('get-user-data', views.get_user_data)
 
 ]
